@@ -1,0 +1,118 @@
+\section{Analyse}
+
+% TODO: Analyse ausformulieren
+
+Dieses Kapitel analysiert die bestehende Situation und definiert die Anforderungen an die zu entwickelnde Middleware.
+
+\subsection{Ist-Analyse}
+
+\subsubsection{Excel-basierter Workflow}
+
+Der aktuelle Workflow basiert auf einer zentralen Excel-Datei (\texttt{Budgetcontrolling.xlsx}), die über SharePoint geteilt wird. Die Datei integriert Daten aus verschiedenen Quellen mittels Power Query.
+
+\begin{table}[H]
+\centering
+\caption{Sheets in Budgetcontrolling.xlsx}
+\label{tab:excel-sheets}
+\begin{tabularx}{\textwidth}{lXl}
+\toprule
+\textbf{Sheet} & \textbf{Zweck} & \textbf{Quelle} \\
+\midrule
+qry\_CALM\_Data & User Stories mit \gls{psp}-Zuordnung & Power Query \\
+CADO & Zeitbuchungen (Ist-Stunden) & SAP-Export \\
+PSP-Elemente & Budget pro \gls{psp} & Manuell \\
+1. PSP-Zuordnung & Manuelle Zuordnungen & Manuell \\
+2. PSP-Zuordnung & Fallback: Team $\rightarrow$ Timebox $\rightarrow$ \gls{psp} & Manuell \\
+Reporting & Zusammenfassung pro Team & Berechnet \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Budget-Metriken}
+
+Die folgenden Metriken werden für das Budget-Controlling verwendet:
+
+\begin{table}[H]
+\centering
+\caption{Budget-Metriken und ihre Berechnung}
+\label{tab:metriken}
+\begin{tabularx}{\textwidth}{lXl}
+\toprule
+\textbf{Metrik} & \textbf{Beschreibung} & \textbf{Berechnung} \\
+\midrule
+Budget & Geplantes Budget & Summe aus PSP-Elemente \\
+Actual & Bereits geleistete Arbeit & CADO Stunden / 8 \\
+\gls{etc} & Noch zu leistende Arbeit & qry\_CALM\_Data (mit \gls{psp}) \\
+\gls{eac} & Geschätzte Gesamtkosten & Actual + \gls{etc} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Problemanalyse}
+
+Die Analyse des bestehenden Workflows zeigt folgende Probleme:
+
+\begin{enumerate}
+    \item \textbf{Keine Echtzeitdaten}: Power Query wird nur bei manuellem Refresh aktualisiert
+    \item \textbf{Keine API}: Andere Systeme können nicht auf die Daten zugreifen
+    \item \textbf{Manuelle Zuordnungen}: \gls{psp}-Zuordnungen müssen manuell in Excel gepflegt werden
+    \item \textbf{Fehlende Validierung}: Keine automatische Prüfung auf Konsistenz
+    \item \textbf{Keine Historisierung}: Änderungen werden nicht nachvollziehbar protokolliert
+\end{enumerate}
+
+\subsection{Soll-Konzept}
+
+Die Middleware soll die beschriebenen Probleme lösen und gleichzeitig einen einfachen Übergang zu einer service-orientierten Architektur ermöglichen.
+
+% TODO: Soll-Konzept Diagramm einfügen
+
+\subsection{Anforderungsanalyse}
+
+\subsubsection{Funktionale Anforderungen}
+
+\begin{table}[H]
+\centering
+\caption{Funktionale Anforderungen}
+\label{tab:fa}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{ID} & \textbf{Anforderung} \\
+\midrule
+FA-01 & Das System muss Budget-Metriken pro Team berechnen können \\
+FA-02 & Das System muss Budget-Metriken pro \gls{psp} berechnen können \\
+FA-03 & Das System muss \gls{crud}-Operationen für \gls{psp}-Zuordnungen unterstützen \\
+FA-04 & Das System muss Session-basiertes Projekt-Management unterstützen \\
+FA-05 & Das System muss Team-Mismatch-Warnungen generieren können \\
+FA-06 & Das System muss Excel-Daten von SharePoint lesen können \\
+FA-07 & Das System muss Änderungen zurück in Excel schreiben können \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Nicht-funktionale Anforderungen}
+
+\begin{table}[H]
+\centering
+\caption{Nicht-funktionale Anforderungen}
+\label{tab:nfa}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{ID} & \textbf{Anforderung} \\
+\midrule
+NFA-01 & Die Backend-Implementierung muss austauschbar sein \\
+NFA-02 & Die \gls{api} muss \gls{odata} v4-kompatibel sein \\
+NFA-03 & Das System muss auf der SAP \gls{btp} deploybar sein \\
+NFA-04 & Die \gls{api} muss für ein Fiori-Frontend geeignet sein \\
+NFA-05 & Das System muss ohne lokale Datenbankinstanz funktionieren \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Abgrenzung}
+
+Folgende Aspekte sind nicht Bestandteil dieser Arbeit:
+\begin{itemize}
+    \item Entwicklung des Fiori-Frontends (wird von anderen Studierenden umgesetzt)
+    \item Vollständige Integration mit SAP \gls{calm} (nur konzeptionell)
+    \item Benutzer-Authentifizierung (wird durch SAP \gls{btp} bereitgestellt)
+\end{itemize}

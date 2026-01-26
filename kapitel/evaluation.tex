@@ -1,0 +1,145 @@
+\section{Evaluation}
+
+% TODO: Evaluation ausformulieren mit konkreten Ergebnissen
+
+Dieses Kapitel evaluiert die entwickelte Middleware und vergleicht die beiden Backend-Ansätze (Excel vs. OData-Services) anhand definierter Kriterien.
+
+\subsection{Vergleichskriterien}
+
+Für den Vergleich der Backend-Ansätze werden folgende Kriterien herangezogen:
+
+\begin{enumerate}
+    \item \textbf{Implementierungsaufwand}: Aufwand für die initiale Entwicklung
+    \item \textbf{Wartbarkeit}: Aufwand für Änderungen und Fehlerbehebung
+    \item \textbf{Erweiterbarkeit}: Aufwand für neue Features
+    \item \textbf{Performance}: Antwortzeiten und Durchsatz
+    \item \textbf{Datenkonsistenz}: Zuverlässigkeit der Daten
+    \item \textbf{Austauschbarkeit}: Aufwand für den Backend-Wechsel
+\end{enumerate}
+
+\subsection{Vergleich: Excel-Backend vs. OData-Services}
+
+\begin{table}[H]
+\centering
+\caption{Vergleich der Backend-Ansätze}
+\label{tab:vergleich}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Kriterium} & \textbf{Excel/SharePoint} & \textbf{OData Services} \\
+\midrule
+Setup-Aufwand & Gering -- Excel bereits vorhanden & Mittel -- Service-Konfiguration nötig \\
+\midrule
+Echtzeitdaten & Nein -- Power Query muss manuell aktualisiert werden & Ja -- direkte Abfrage \\
+\midrule
+Transaktionen & Nein -- keine ACID-Garantien & Ja -- Datenbank-Transaktionen \\
+\midrule
+Skalierbarkeit & Begrenzt -- Dateigröße limitiert & Hoch -- Datenbank skaliert \\
+\midrule
+Offline-Fähigkeit & Ja -- Excel lokal verfügbar & Nein -- Service muss erreichbar sein \\
+\midrule
+Lernkurve Endnutzer & Gering -- Excel bekannt & Höher -- neue Oberfläche \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Bewertung der Anforderungserfüllung}
+
+\subsubsection{Funktionale Anforderungen}
+
+\begin{table}[H]
+\centering
+\caption{Erfüllung der funktionalen Anforderungen}
+\label{tab:fa-erfuellung}
+\begin{tabularx}{\textwidth}{lXc}
+\toprule
+\textbf{ID} & \textbf{Anforderung} & \textbf{Status} \\
+\midrule
+FA-01 & Budget-Metriken pro Team berechnen & Erfüllt \\
+FA-02 & Budget-Metriken pro \gls{psp} berechnen & Erfüllt \\
+FA-03 & \gls{crud} für \gls{psp}-Zuordnungen & Erfüllt \\
+FA-04 & Session-basiertes Projekt-Management & Erfüllt \\
+FA-05 & Team-Mismatch-Warnungen & Erfüllt \\
+FA-06 & Excel-Daten von SharePoint lesen & Teilweise* \\
+FA-07 & Änderungen in Excel schreiben & Erfüllt \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+*FA-06: Lokales Lesen funktioniert, SharePoint-Berechtigungen noch ausstehend.
+
+\subsubsection{Nicht-funktionale Anforderungen}
+
+\begin{table}[H]
+\centering
+\caption{Erfüllung der nicht-funktionalen Anforderungen}
+\label{tab:nfa-erfuellung}
+\begin{tabularx}{\textwidth}{lXc}
+\toprule
+\textbf{ID} & \textbf{Anforderung} & \textbf{Status} \\
+\midrule
+NFA-01 & Backend austauschbar & Erfüllt \\
+NFA-02 & \gls{odata} v4-kompatibel & Erfüllt \\
+NFA-03 & Auf SAP \gls{btp} deploybar & Erfüllt \\
+NFA-04 & Für Fiori-Frontend geeignet & Erfüllt \\
+NFA-05 & Ohne lokale Datenbank & Erfüllt \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Bewertung der Austauschbarkeit}
+
+Die zentrale Forschungsfrage zielt auf die Austauschbarkeit des Backends ab. Die Evaluation zeigt:
+
+\subsubsection{Durch das Adapter-Pattern geschützte Komponenten}
+
+\begin{itemize}
+    \item \gls{cds} Service-Definition -- keine Änderung nötig
+    \item Budget-Berechnungslogik -- keine Änderung nötig
+    \item Session-Management -- keine Änderung nötig
+    \item \gls{api}-Dokumentation -- keine Änderung nötig
+\end{itemize}
+
+\subsubsection{Bei Backend-Wechsel zu ändernde Komponenten}
+
+\begin{itemize}
+    \item Neuer OData-Adapter implementieren (analog zu Excel-Adapter)
+    \item Konfiguration der Service-Endpunkte
+    \item Authentifizierung anpassen (OAuth 2.0 für \gls{calm})
+\end{itemize}
+
+\subsubsection{Geschätzter Aufwand für Backend-Wechsel}
+
+% TODO: Aufwand schätzen basierend auf Erfahrung
+
+\subsection{Performance-Analyse}
+
+% TODO: Performance-Messungen durchführen und dokumentieren
+
+\begin{table}[H]
+\centering
+\caption{Antwortzeiten (Beispielmessungen)}
+\label{tab:performance}
+\begin{tabularx}{\textwidth}{Xcc}
+\toprule
+\textbf{Endpoint} & \textbf{Datenmenge} & \textbf{Antwortzeit} \\
+\midrule
+GET /BudgetOverview & 14 Teams & TODO ms \\
+GET /UserStories & 251 Stories & TODO ms \\
+GET /TimeBookings & 3555 Buchungen & TODO ms \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Lessons Learned}
+
+% TODO: Erkenntnisse aus der Implementierung
+
+\begin{enumerate}
+    \item \textbf{Adapter-Pattern bewährt sich}: Die strikte Trennung zwischen Service- und Adapter-Schicht hat sich als praktikabel erwiesen.
+
+    \item \textbf{Excel-Schreiben komplexer als Lesen}: Das Zurückschreiben in Excel erfordert sorgfältige Handhabung des Formats.
+
+    \item \textbf{\gls{cds} beschleunigt Entwicklung}: Die deklarative Service-Definition reduziert Boilerplate-Code erheblich.
+
+    \item \textbf{Session-Management im RAM riskant}: Bei Serverneustart gehen Sessions verloren -- für Produktion wäre Persistierung nötig.
+\end{enumerate}

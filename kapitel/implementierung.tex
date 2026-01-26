@@ -1,0 +1,210 @@
+\section{Implementierung}
+
+% TODO: Implementierung ausformulieren
+
+Dieses Kapitel dokumentiert die Implementierung der BC Middleware auf der SAP \gls{btp}.
+
+\subsection{Projektstruktur}
+
+Die Middleware folgt der Standard-Projektstruktur des SAP \gls{cap}:
+
+\begin{lstlisting}[caption={Projektstruktur}, label={lst:project-structure}]
+bc_middleware/
+  srv/
+    budget-service.cds    # CDS Service Definition
+    budget-service.js     # Service Implementation
+    index.html            # API-Dokumentation
+    lib/
+      excel-parser.js     # Excel Adapter
+      ms-auth.js          # Microsoft Graph Auth
+      sharepoint.js       # SharePoint Integration
+  excel_templates/
+    Projekt_1/
+      Budgetcontrolling.xlsx
+  package.json
+  manifest.yaml           # CF Deployment Config
+\end{lstlisting}
+
+\subsection{CDS Service-Definition}
+
+Die Service-Definition in \gls{cds} beschreibt alle Entitäten, Funktionen und Actions der \gls{api}.
+
+\begin{lstlisting}[caption={Auszug aus budget-service.cds}, label={lst:cds-service}]
+service BudgetService @(path: '/api/budget') {
+
+    @cds.persistence.skip
+    entity PSPElements {
+        key psp        : String(50);
+            name       : String(200);
+            team       : String(100);
+            budgetPT   : Decimal(15, 2);
+    }
+
+    @cds.persistence.skip
+    entity BudgetOverview {
+        key team      : String(100);
+            budgetPT  : Decimal(15, 2);
+            actualPT  : Decimal(15, 2);
+            etcPT     : Decimal(15, 2);
+            eacPT     : Decimal(15, 2);
+    }
+
+    function getProjects() returns array of String;
+
+    action startSession(project : String) returns {
+        success   : Boolean;
+        sessionId : String;
+        project   : String;
+    };
+}
+\end{lstlisting}
+
+Die Annotation \texttt{@cds.persistence.skip} signalisiert, dass die Entitäten nicht in einer Datenbank persistiert werden, sondern zur Laufzeit aus den Excel-Daten generiert werden.
+
+\subsection{Excel-Adapter}
+
+Der Excel-Adapter ist das Herzstück der aktuellen Backend-Implementierung. Er nutzt die \texttt{xlsx}-Bibliothek zum Parsen und Schreiben von Excel-Dateien.
+
+\subsubsection{Datenextraktion}
+
+\begin{lstlisting}[caption={Excel-Parser Hauptfunktion}, label={lst:excel-parser}]
+function loadNewStructure(excelPath) {
+    const workbook = XLSX.readFile(excelPath);
+
+    return {
+        teams: parseTeams(workbook),
+        timeboxes: parseTimeboxes(workbook),
+        pspElements: parsePSPElements(workbook),
+        userStories: parseUserStories(workbook),
+        timeBookings: parseCADO(workbook),
+        pspZuordnungen: parsePSPZuordnung(workbook),
+        // ... weitere Daten
+    };
+}
+\end{lstlisting}
+
+\subsubsection{Sheet-Parsing}
+
+Jedes Sheet wird individuell geparst und auf das einheitliche Datenmodell gemappt:
+
+\begin{lstlisting}[caption={Parsing der PSP-Elemente}, label={lst:parse-psp}]
+function parsePSPElements(workbook) {
+    const sheet = workbook.Sheets['PSP-Elemente'];
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    return data.slice(1).map(row => ({
+        psp: row[0]?.toString() || '',
+        name: row[1]?.toString() || '',
+        pspElement: row[2]?.toString() || '',
+        team: row[3]?.toString() || '',
+        budgetPT: parseFloat(row[4]) || 0
+    }));
+}
+\end{lstlisting}
+
+\subsubsection{Write-Back für PSP-Zuordnungen}
+
+\gls{crud}-Operationen für \gls{psp}-Zuordnungen werden direkt in die Excel-Datei geschrieben:
+
+\begin{lstlisting}[caption={PSP-Zuordnung hinzufügen}, label={lst:add-assignment}]
+function addPSPAssignment(excelPath, assignment) {
+    const workbook = XLSX.readFile(excelPath);
+    const sheet = workbook.Sheets['1. PSP-Zuordnung'];
+
+    // Letzte Zeile finden und neue Zeile hinzufuegen
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    const newRow = range.e.r + 1;
+
+    // Werte schreiben
+    sheet[XLSX.utils.encode_cell({r: newRow, c: 0})] =
+        { t: 's', v: assignment.userStory };
+    // ... weitere Spalten
+
+    XLSX.writeFile(workbook, excelPath);
+}
+\end{lstlisting}
+
+\subsection{Budget-Metriken Berechnung}
+
+Die Budget-Metriken werden zur Laufzeit aus den geladenen Daten berechnet.
+
+\subsubsection{Budget pro Team}
+
+\begin{lstlisting}[caption={Budget-Berechnung pro Team}, label={lst:budget-calc}]
+function calculateBudgetByTeam(pspElemente) {
+    const budgetByTeam = {};
+
+    for (const elem of pspElemente) {
+        const team = elem.team || '(Leer)';
+        if (!budgetByTeam[team]) budgetByTeam[team] = 0;
+        budgetByTeam[team] += elem.budgetPT || 0;
+    }
+
+    return budgetByTeam;
+}
+\end{lstlisting}
+
+\subsubsection{ETC-Berechnung}
+
+Die \gls{etc}-Berechnung berücksichtigt nur User Stories mit gültiger \gls{psp}-Zuordnung:
+
+\begin{lstlisting}[caption={ETC-Berechnung}, label={lst:etc-calc}]
+function calculateEtcByTeam(userStories) {
+    const etcByTeam = {};
+
+    for (const story of userStories) {
+        const psp = story.pspElement || '';
+        // Nur Stories mit PSP-Zuordnung zaehlen
+        if (!psp || psp === 'unassigned') continue;
+
+        const team = story.team || '(Leer)';
+        if (!etcByTeam[team]) etcByTeam[team] = 0;
+        etcByTeam[team] += story.etcPT || 0;
+    }
+
+    return etcByTeam;
+}
+\end{lstlisting}
+
+\subsection{Session-Management}
+
+Sessions werden im Arbeitsspeicher des Servers verwaltet:
+
+\begin{lstlisting}[caption={Session-Verwaltung}, label={lst:session-mgmt}]
+const sessions = {};
+
+function createSession(project) {
+    const sessionId = crypto.randomUUID();
+    sessions[sessionId] = {
+        project,
+        createdAt: new Date().toISOString()
+    };
+    return sessionId;
+}
+
+function getSession(sessionId) {
+    return sessions[sessionId] || null;
+}
+\end{lstlisting}
+
+\subsection{Deployment}
+
+Die Middleware wird auf SAP \gls{btp} Cloud Foundry deployed:
+
+\begin{lstlisting}[caption={manifest.yaml}, label={lst:manifest}]
+applications:
+  - name: budget-middleware
+    memory: 256M
+    buildpacks:
+      - nodejs_buildpack
+    command: npm start
+    routes:
+      - route: xxx-srv.cfapps.eu10.hana.ondemand.com
+\end{lstlisting}
+
+Das Deployment erfolgt mit dem Cloud Foundry CLI:
+
+\begin{lstlisting}[caption={Deployment-Befehle}, label={lst:deploy}]
+cf login -a https://api.cf.eu10.hana.ondemand.com
+cf push
+\end{lstlisting}

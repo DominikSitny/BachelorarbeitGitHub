@@ -1,0 +1,87 @@
+\section{Fazit und Ausblick}
+
+% TODO: Fazit ausformulieren
+
+\subsection{Zusammenfassung}
+
+Diese Bachelorarbeit hat den Entwurf und die Implementierung einer Middleware für Budget-Controlling im SAP-Umfeld dokumentiert. Die entwickelte BC Middleware erfüllt die gestellten Anforderungen:
+
+\begin{itemize}
+    \item Eine einheitliche \gls{odata} v4-konforme \gls{api} wurde bereitgestellt
+    \item Excel-Daten werden erfolgreich geparst und aggregiert
+    \item Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}) werden korrekt berechnet
+    \item \gls{crud}-Operationen für \gls{psp}-Zuordnungen wurden implementiert
+    \item Die Architektur ermöglicht den Austausch des Backends
+\end{itemize}
+
+Die Middleware wurde erfolgreich auf der SAP \gls{btp} deployed und steht für die Integration mit dem Fiori-Frontend bereit.
+
+\subsection{Beantwortung der Forschungsfrage}
+
+Die zentrale Forschungsfrage lautete:
+
+\begin{quote}
+\textit{Wie kann eine Middleware-Architektur gestaltet werden, die einen austauschbaren Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration ermöglicht?}
+\end{quote}
+
+Die Arbeit zeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} eine solche Architektur realisierbar ist. Die Schlüsselelemente sind:
+
+\begin{enumerate}
+    \item \textbf{Einheitliches Datenmodell}: Unabhängig von der Datenquelle wird intern das gleiche Modell verwendet.
+
+    \item \textbf{Adapter-Schicht}: Die Adapter-Schicht kapselt alle datenquellenspezifischen Details. Die Service-Schicht arbeitet nur mit dem abstrakten Interface.
+
+    \item \textbf{Deklarative Service-Definition}: SAP \gls{cap} mit \gls{cds} ermöglicht eine saubere Trennung zwischen \gls{api}-Definition und Implementierung.
+
+    \item \textbf{Berechnung statt Persistierung}: Die Budget-Metriken werden zur Laufzeit berechnet, nicht gespeichert. Dies vereinfacht den Backend-Wechsel.
+\end{enumerate}
+
+Der geschätzte Aufwand für einen Wechsel von Excel zu \gls{odata}-Services besteht primär in der Implementierung eines neuen Adapters. Die Service-Schicht, \gls{api}-Definition und das Frontend bleiben unverändert.
+
+\subsection{Kritische Reflexion}
+
+% TODO: Kritische Punkte ergänzen
+
+\begin{itemize}
+    \item \textbf{SharePoint-Integration}: Die direkte SharePoint-Anbindung konnte aufgrund fehlender Berechtigungen nicht vollständig getestet werden.
+
+    \item \textbf{Session-Persistierung}: Sessions werden nur im RAM gehalten und gehen bei Serverneustart verloren.
+
+    \item \textbf{\gls{crud}-Tests}: Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen erfordert noch ausführliche Tests mit größeren Datenmengen.
+
+    \item \textbf{Konzeptioneller OData-Adapter}: Der OData-Adapter für SAP \gls{calm} wurde nur konzeptionell beschrieben, nicht implementiert.
+\end{itemize}
+
+\subsection{Ausblick}
+
+Für die Weiterentwicklung der BC Middleware ergeben sich folgende Möglichkeiten:
+
+\subsubsection{Kurzfristig}
+
+\begin{itemize}
+    \item Umfangreiche Tests der \gls{crud}-Funktionalität
+    \item Aktivierung der SharePoint-Integration nach Erhalt der Berechtigungen
+    \item Performance-Optimierung durch Caching
+\end{itemize}
+
+\subsubsection{Mittelfristig}
+
+\begin{itemize}
+    \item Implementierung des OData-Adapters für SAP \gls{calm}
+    \item Persistierung der Sessions (z.B. in Redis)
+    \item Erweiterung um Historisierung von Änderungen
+\end{itemize}
+
+\subsubsection{Langfristig}
+
+\begin{itemize}
+    \item Vollständige Migration auf SAP \gls{calm} als Datenquelle
+    \item Integration mit SAP Analytics Cloud für Reporting
+    \item Erweiterung auf weitere Projektcontrolling-Funktionen
+\end{itemize}
+
+\subsection{Fazit}
+
+Die BC Middleware demonstriert, dass eine austauschbare Backend-Architektur im SAP-Umfeld praktikabel umsetzbar ist. Das Adapter-Pattern in Kombination mit SAP \gls{cap} bietet eine solide Grundlage für die schrittweise Migration von Excel-basierten Lösungen zu service-orientierten Architekturen.
+
+Die Arbeit liefert damit einen Beitrag zur Frage, wie Unternehmen ihre bestehenden Excel-Workflows modernisieren können, ohne dabei einen abrupten Systemwechsel vollziehen zu müssen.

@@ -1,0 +1,91 @@
+\section{Theoretische Grundlagen}
+
+% TODO: Grundlagen ausformulieren und mit Quellen belegen
+
+Dieses Kapitel erläutert die theoretischen Grundlagen, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind.
+
+\subsection{SAP Business Technology Platform}
+
+Die SAP \gls{btp} ist die zentrale Entwicklungs- und Integrationsplattform von SAP für Cloud-Anwendungen. Sie bietet eine Vielzahl von Services für die Entwicklung, Integration und Erweiterung von SAP-Anwendungen.
+
+% TODO: BTP Services beschreiben, Cloud Foundry Environment
+
+\subsubsection{Cloud Foundry Environment}
+
+% TODO: Cloud Foundry erklären
+
+\subsubsection{SAP Cloud ALM}
+
+SAP \gls{calm} ist eine cloudbasierte Lösung für das Application Lifecycle Management. Es unterstützt Unternehmen bei der Planung, Implementierung und dem Betrieb von SAP-Lösungen.
+
+% TODO: CALM Features beschreiben
+
+\subsection{SAP Cloud Application Programming Model}
+
+Das \gls{cap} ist ein Framework für die Entwicklung von Enterprise-Anwendungen auf der SAP \gls{btp}. Es basiert auf bewährten Open-Source-Technologien und bietet eine einheitliche Programmierabstraktion für verschiedene Datenbanken und Protokolle.
+
+\subsubsection{Core Data Services}
+
+\gls{cds} ist die deklarative Modellierungssprache des \gls{cap}. Mit \gls{cds} werden Datenmodelle und Services definiert.
+
+\begin{lstlisting}[caption={Beispiel einer CDS-Service-Definition}, label={lst:cds-example}]
+service BudgetService @(path: '/api/budget') {
+    entity PSPElements {
+        key psp      : String(50);
+            name     : String(200);
+            team     : String(100);
+            budgetPT : Decimal(15, 2);
+    }
+
+    function getProjects() returns array of String;
+    action startSession(project : String) returns { ... };
+}
+\end{lstlisting}
+
+\subsubsection{Service-Implementierung in Node.js}
+
+Die Geschäftslogik wird in JavaScript (Node.js) implementiert. CAP bietet dabei einen ereignisgesteuerten Ansatz mit Handlern für \gls{crud}-Operationen.
+
+% TODO: Event Handler erklären
+
+\subsection{OData Protocol}
+
+Das \gls{odata} ist ein offener Standard für \gls{rest}ful \gls{api}s. Es definiert bewährte Praktiken für den Aufbau und die Nutzung von Web-APIs und wird von SAP als Standard für die Kommunikation zwischen Frontend und Backend verwendet.
+
+\subsubsection{OData v4}
+
+% TODO: OData v4 Features (Query Options, Actions, Functions)
+
+Die wichtigsten Query-Optionen in OData v4 sind:
+\begin{itemize}
+    \item \texttt{\$filter} -- Filtern von Ergebnissen
+    \item \texttt{\$select} -- Auswahl bestimmter Eigenschaften
+    \item \texttt{\$orderby} -- Sortierung
+    \item \texttt{\$top} und \texttt{\$skip} -- Paginierung
+\end{itemize}
+
+\subsection{Architekturmuster}
+
+\subsubsection{Adapter Pattern}
+
+Das Adapter-Pattern ist ein strukturelles Entwurfsmuster, das die Zusammenarbeit von Klassen mit inkompatiblen Schnittstellen ermöglicht \citep{gamma1994}. Es fungiert als Wrapper, der eine Schnittstelle in eine andere übersetzt.
+
+% TODO: Adapter Pattern Diagramm einfügen
+
+Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Datenquelle (Excel vs. OData-Service), ohne dass die darüberliegende Service-Schicht angepasst werden muss.
+
+\subsubsection{Repository Pattern}
+
+Das Repository-Pattern abstrahiert den Datenzugriff und stellt eine einheitliche Schnittstelle für die Geschäftslogik bereit \citep{fowler2002}.
+
+% TODO: Repository Pattern erklären
+
+\subsubsection{Schichtenarchitektur}
+
+% TODO: Layer Architecture erklären
+
+\subsection{Microsoft Graph API}
+
+Die Microsoft \gls{graph} ermöglicht den programmgesteuerten Zugriff auf Microsoft 365-Dienste, einschließlich SharePoint und OneDrive. Für den Zugriff wird OAuth 2.0 verwendet.
+
+% TODO: Authentication Flow beschreiben

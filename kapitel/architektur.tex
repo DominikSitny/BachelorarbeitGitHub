@@ -1,0 +1,143 @@
+\section{Architekturentwurf}
+
+% TODO: Architektur ausformulieren
+
+Dieses Kapitel beschreibt den Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung.
+
+\subsection{Gesamtarchitektur}
+
+Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten:
+
+% TODO: Architekturdiagramm einfügen
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}[Architekturdiagramm einfügen]\vspace{3cm}}}
+\caption{Gesamtarchitektur der BC Middleware}
+\label{fig:architektur}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Präsentationsschicht}: Fiori Frontend (nicht Teil dieser Arbeit)
+    \item \textbf{API-Schicht}: \gls{odata} v4 Service (SAP \gls{cap})
+    \item \textbf{Service-Schicht}: Geschäftslogik und Berechnungen
+    \item \textbf{Adapter-Schicht}: Excel-Parser / OData-Connector
+    \item \textbf{Datenschicht}: SharePoint/Excel oder \gls{calm} Services
+\end{enumerate}
+
+\subsection{Schichtenmodell}
+
+\subsubsection{API-Schicht}
+
+Die API-Schicht wird mit SAP \gls{cap} implementiert und stellt eine \gls{odata} v4-konforme Schnittstelle bereit. Die Service-Definition erfolgt deklarativ in \gls{cds}.
+
+\subsubsection{Service-Schicht}
+
+Die Service-Schicht enthält die Geschäftslogik:
+\begin{itemize}
+    \item Berechnung der Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac})
+    \item Aggregation pro Team und pro \gls{psp}
+    \item Validierung von \gls{psp}-Zuordnungen
+    \item Generierung von Warnungen bei Team-Mismatches
+\end{itemize}
+
+\subsubsection{Adapter-Schicht}
+
+Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen. Sie implementiert das Adapter-Pattern und ermöglicht den Austausch des Backends ohne Änderungen an der Service-Schicht.
+
+\subsection{Adapter-Pattern für Backend-Austauschbarkeit}
+
+% TODO: Adapter Diagramm einfügen
+
+Der zentrale Entwurfsgedanke ist die Austauschbarkeit des Backends. Die Adapter-Schicht definiert eine einheitliche Schnittstelle, die von beiden Backend-Implementierungen erfüllt wird:
+
+\begin{lstlisting}[caption={Adapter-Interface (konzeptionell)}, label={lst:adapter-interface}]
+interface DataAdapter {
+    loadTeams(): Team[]
+    loadPSPElements(): PSPElement[]
+    loadUserStories(): UserStory[]
+    loadTimeBookings(): TimeBooking[]
+    loadPSPAssignments(): PSPAssignment[]
+
+    savePSPAssignment(assignment): void
+    updatePSPAssignment(assignment): void
+    deletePSPAssignment(key): void
+}
+\end{lstlisting}
+
+\subsubsection{Excel-Adapter}
+
+Der Excel-Adapter liest Daten aus der \texttt{Budgetcontrolling.xlsx} und schreibt Änderungen zurück:
+
+\begin{itemize}
+    \item Parsen der verschiedenen Sheets
+    \item Mapping auf das einheitliche Datenmodell
+    \item Write-Back für \gls{psp}-Zuordnungen
+\end{itemize}
+
+\subsubsection{OData-Adapter (konzeptionell)}
+
+Der OData-Adapter würde Daten von SAP \gls{calm} Services abrufen:
+
+\begin{itemize}
+    \item Authentifizierung via OAuth 2.0
+    \item Abruf von User Stories und Zeitbuchungen
+    \item Mapping auf das einheitliche Datenmodell
+\end{itemize}
+
+\subsection{Session-Management}
+
+Die Middleware unterstützt mehrere Projekte. Über ein Session-Management wird sichergestellt, dass alle Requests eines Benutzers auf das gleiche Projekt zugreifen.
+
+\begin{lstlisting}[caption={Session-Flow}, label={lst:session-flow}]
+1. GET  /api/budget/getProjects()
+   -> ["Projekt_1", "Projekt_2"]
+
+2. POST /api/budget/startSession { "project": "Projekt_1" }
+   -> { sessionId: "abc123...", project: "Projekt_1" }
+
+3. GET  /api/budget/BudgetOverview
+   Header: x-session-id: abc123...
+   -> Budget-Daten fuer Projekt_1
+\end{lstlisting}
+
+\subsection{Datenmodell}
+
+Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} definiert:
+
+% TODO: ER-Diagramm einfügen
+
+\subsubsection{Entitäten}
+
+\begin{table}[H]
+\centering
+\caption{Übersicht der Entitäten}
+\label{tab:entities}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Entität} & \textbf{Beschreibung} \\
+\midrule
+Teams & Projekt-Teams aus Prüftabellen \\
+Timeboxes & Phasen (Prepare, Explore, Realize, Deploy, Run) \\
+PSPElements & \gls{psp}-Elemente mit Team und Budget \\
+UserStories & User Stories aus qry\_CALM\_Data \\
+TimeBookings & Zeitbuchungen aus CADO \\
+PSPAssignments & Manuelle \gls{psp}-Zuordnungen \\
+BudgetOverview & Aggregierte Metriken pro Team \\
+BudgetOverviewByPSP & Aggregierte Metriken pro \gls{psp} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{PSP-Override-Mechanismus}
+
+Ein besonderes Architekturmerkmal ist der PSP-Override-Mechanismus. Er ermöglicht, dass manuelle \gls{psp}-Zuordnungen sofort wirksam werden, ohne dass die Excel-Power-Query aktualisiert werden muss.
+
+\begin{lstlisting}[caption={PSP-Override Ablauf}, label={lst:psp-override}]
+1. createPSPAssignment("User Story X", "PSP-001")
+2. -> Schreibt in "1. PSP-Zuordnung" Sheet
+3. Naechster API-Request:
+   - qry_CALM_Data wird gelesen
+   - "1. PSP-Zuordnung" wird als Override angewendet
+   - UserStory.pspElement wird ueberschrieben
+4. -> ETC-Berechnung nutzt das neue PSP
+\end{lstlisting}

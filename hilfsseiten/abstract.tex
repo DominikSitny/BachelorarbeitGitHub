@@ -1,0 +1,19 @@
+\section*{Abstract}
+
+% TODO: Abstract fertigstellen wenn Arbeit abgeschlossen
+
+Diese Bachelorarbeit untersucht den Architekturentwurf einer Middleware für Budget-Controlling im SAP-Umfeld. Im Fokus steht die Frage, wie eine Middleware gestaltet werden kann, die einen nahtlosen Übergang von einem Excel-basierten Backend zu einer service-orientierten Architektur mit \gls{odata}-Services ermöglicht.
+
+Die entwickelte Lösung nutzt das SAP \gls{cap} auf der SAP \gls{btp} und implementiert das Adapter-Pattern, um die Datenquellen austauschbar zu halten. Die Middleware aggregiert Daten aus verschiedenen Quellen (Excel/SharePoint, SAP \gls{calm}) und stellt sie über eine einheitliche \gls{api} für ein Fiori-Frontend bereit.
+
+Die Arbeit vergleicht beide Backend-Ansätze hinsichtlich Wartbarkeit, Performance, Implementierungsaufwand und Erweiterbarkeit. Die Ergebnisse zeigen, dass durch konsequente Anwendung des Adapter-Patterns ein Wechsel zwischen den Backends mit minimalem Aufwand möglich ist.
+
+\bigskip
+\large{\textbf{Abstract (English)}}
+
+\normalsize
+This bachelor thesis examines the architectural design of a middleware for budget controlling in the SAP environment. The focus is on how a middleware can be designed to enable a seamless transition from an Excel-based backend to a service-oriented architecture with OData services.
+
+The developed solution uses SAP Cloud Application Programming Model (CAP) on the SAP Business Technology Platform (BTP) and implements the adapter pattern to keep data sources interchangeable. The middleware aggregates data from various sources (Excel/SharePoint, SAP Cloud ALM) and provides it via a unified API for a Fiori frontend.
+
+The thesis compares both backend approaches in terms of maintainability, performance, implementation effort, and extensibility. The results show that consistent application of the adapter pattern enables switching between backends with minimal effort.

@@ -1,0 +1,59 @@
+\section{Einleitung}
+
+% TODO: Einleitung ausformulieren
+
+\subsection{Motivation und Problemstellung}
+
+Im Rahmen von SAP S/4HANA-Projekten ist das Budget-Controlling ein zentraler Bestandteil der Projektsteuerung. In vielen Unternehmen erfolgt die Budgetplanung und -überwachung noch immer auf Basis von Excel-Dateien, die manuell gepflegt und über SharePoint geteilt werden.
+
+Diese Arbeitsweise bringt mehrere Herausforderungen mit sich:
+\begin{itemize}
+    \item Keine Echtzeitdaten -- Informationen sind oft veraltet
+    \item Manuelle Fehlerquellen bei der Dateneingabe
+    \item Fehlende Integration mit SAP-Systemen
+    \item Schwierige Nachvollziehbarkeit von Änderungen
+    \item Aufwendige manuelle Aggregation von Budget-Metriken
+\end{itemize}
+
+Gleichzeitig bietet SAP mit dem \gls{calm} eine moderne Lösung für das Application Lifecycle Management, die perspektivisch auch für das Budget-Controlling genutzt werden könnte. Der Übergang von einer Excel-basierten Lösung zu einer service-orientierten Architektur ist jedoch mit erheblichem Aufwand verbunden.
+
+\subsection{Zielsetzung}
+
+Das Ziel dieser Arbeit ist der Entwurf und die Implementierung einer Middleware, die:
+\begin{enumerate}
+    \item Eine einheitliche \gls{api} für das Frontend bereitstellt
+    \item Aktuell Excel-Daten von SharePoint verarbeiten kann
+    \item Zukünftig auf \gls{odata}-Services von SAP \gls{calm} umgestellt werden kann
+    \item Den Wechsel zwischen beiden Backends mit minimalem Aufwand ermöglicht
+\end{enumerate}
+
+\subsection{Forschungsfrage}
+
+Die zentrale Forschungsfrage dieser Arbeit lautet:
+
+\begin{quote}
+\textit{Wie kann eine Middleware-Architektur gestaltet werden, die einen austauschbaren Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration ermöglicht?}
+\end{quote}
+
+Daraus ergeben sich folgende Teilfragen:
+\begin{itemize}
+    \item Welche Architekturmuster eignen sich für austauschbare Datenquellen?
+    \item Wie unterscheiden sich die beiden Ansätze hinsichtlich Wartbarkeit und Erweiterbarkeit?
+    \item Welcher Implementierungsaufwand ist für den Wechsel zwischen den Backends erforderlich?
+\end{itemize}
+
+\subsection{Aufbau der Arbeit}
+
+Die Arbeit gliedert sich wie folgt:
+
+\textbf{Kapitel 2} erläutert die theoretischen Grundlagen zu SAP \gls{cap}, \gls{odata} und relevanten Architekturmustern.
+
+\textbf{Kapitel 3} analysiert die bestehende Situation und definiert die funktionalen sowie nicht-funktionalen Anforderungen an die Middleware.
+
+\textbf{Kapitel 4} beschreibt den Architekturentwurf der Middleware mit Fokus auf die Austauschbarkeit der Backends.
+
+\textbf{Kapitel 5} dokumentiert die Implementierung der Lösung auf der SAP \gls{btp}.
+
+\textbf{Kapitel 6} evaluiert die Ergebnisse und vergleicht beide Backend-Ansätze anhand definierter Kriterien.
+
+\textbf{Kapitel 7} fasst die Ergebnisse zusammen, beantwortet die Forschungsfrage und gibt einen Ausblick auf zukünftige Erweiterungen.
