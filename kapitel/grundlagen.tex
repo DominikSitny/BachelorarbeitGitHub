@@ -1,6 +1,6 @@
 \section{Theoretische Grundlagen}
 
-Dieses Kapitel erläutert die theoretischen Grundlagen, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind. Zunächst werden die verwendeten SAP-Technologien vorgestellt (Abschnitt~2.1--2.3), anschließend REST und Cloud Computing (Abschnitt~2.4--2.5), dann relevante Architekturmuster (Abschnitt~2.7) und abschließend die Microsoft Graph API für den SharePoint-Zugriff (Abschnitt~2.8).
+In diesem Kapitel werden die theoretischen Grundlagen erläutert, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind. Zunächst werden die verwendeten SAP-Technologien vorgestellt (Abschnitt~2.1--2.3), anschließend REST und Cloud Computing (Abschnitt~2.4--2.5), dann relevante Architekturmuster (Abschnitt~2.6) und abschließend die Microsoft Graph API für den SharePoint-Zugriff (Abschnitt~2.7).
 
 \subsection{SAP Business Technology Platform}
 
@@ -28,7 +28,7 @@ Die wesentlichen Konzepte von Cloud Foundry sind:
     \item \textbf{Routes}: URL-Mappings für den externen Zugriff auf Anwendungen
 \end{itemize}
 
-Das Deployment erfolgt über das Cloud Foundry CLI mit dem Befehl \texttt{cf push}, der die Anwendung paketiert, einen Container erstellt und die Instanzen startet. Dieser Ansatz folgt dem \enquote{Cloud Native}-Paradigma, bei dem Anwendungen für die Cloud-Umgebung optimiert werden \citep{davis2019}.
+Das Deployment erfolgt über das Cloud Foundry CLI mit dem Befehl \texttt{cf push}, welcher die Anwendung paketiert, einen Container erstellt und die Instanzen startet. Dieser Ansatz folgt dem \enquote{Cloud Native}-Paradigma, bei dem Anwendungen für die Cloud-Umgebung optimiert werden \citep{davis2019}.
 
 \subsubsection{SAP Cloud ALM}
 
@@ -90,7 +90,7 @@ Die Annotation \texttt{@cds.persistence.skip} kennzeichnet Entitäten, die nicht
 
 \subsubsection{Service-Implementierung in Node.js}
 
-Die Geschäftslogik wird in JavaScript (Node.js) implementiert \citep{nodejs2024}. CAP bietet einen ereignisgesteuerten Ansatz mit Handlern für \gls{crud}-Operationen. Die Ereignisse folgen einem einheitlichen Muster:
+Die Geschäftslogik wird in JavaScript (Node.js) implementiert \citep{nodejs2024}. CAP stellt einen ereignisgesteuerten Ansatz mit Handlern für \gls{crud}-Operationen bereit. Die Ereignisse folgen einem einheitlichen Muster:
 
 \begin{lstlisting}[caption={Event Handler in CAP}, label={lst:event-handler}]
 module.exports = class BudgetService extends cds.ApplicationService {

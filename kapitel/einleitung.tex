@@ -6,20 +6,20 @@ Die digitale Transformation von Geschäftsprozessen stellt Unternehmen vor die H
 
 Im Rahmen von SAP S/4HANA-Projekten ist das Budget-Controlling ein zentraler Bestandteil der Projektsteuerung. In vielen Unternehmen erfolgt die Budgetplanung und -überwachung noch immer auf Basis von Excel-Dateien, die manuell gepflegt und über SharePoint geteilt werden.
 
-Diese Arbeitsweise bringt mehrere Herausforderungen mit sich:
+Diese Arbeitsweise ist mit mehreren Herausforderungen verbunden:
 \begin{itemize}
-    \item Keine Echtzeitdaten -- Informationen sind oft veraltet
+    \item Fehlende Echtzeitdaten -- Informationen sind häufig veraltet
     \item Manuelle Fehlerquellen bei der Dateneingabe
     \item Fehlende Integration mit SAP-Systemen
-    \item Schwierige Nachvollziehbarkeit von Änderungen
+    \item Eingeschränkte Nachvollziehbarkeit von Änderungen
     \item Aufwendige manuelle Aggregation von Budget-Metriken
 \end{itemize}
 
-Gleichzeitig bietet SAP mit dem \gls{calm} eine moderne Lösung für das Application Lifecycle Management, die perspektivisch auch für das Budget-Controlling genutzt werden könnte. Der Übergang von einer Excel-basierten Lösung zu einer service-orientierten Architektur ist jedoch mit erheblichem Aufwand verbunden.
+Gleichzeitig stellt SAP mit dem \gls{calm} eine moderne Lösung für das Application Lifecycle Management bereit, die perspektivisch auch für das Budget-Controlling genutzt werden kann. Der Übergang von einer Excel-basierten Lösung zu einer service-orientierten Architektur ist jedoch mit erheblichem Aufwand verbunden.
 
 \subsection{Zielsetzung}
 
-Das Ziel dieser Arbeit ist der Entwurf und die Implementierung einer Middleware, die:
+Ziel dieser Arbeit ist der Entwurf und die Implementierung einer Middleware, welche die folgenden Anforderungen erfüllt:
 \begin{enumerate}
     \item Eine einheitliche \gls{api} für das Frontend bereitstellt
     \item Aktuell Excel-Daten von SharePoint verarbeiten kann

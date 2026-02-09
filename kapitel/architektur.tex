@@ -1,10 +1,10 @@
 \section{Architekturentwurf}
 
-Dieses Kapitel beschreibt den Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung. Der Entwurf orientiert sich an etablierten Architekturprinzipien \citep{bass2021, starke2020} und berücksichtigt die spezifischen Anforderungen aus Kapitel~3.
+In diesem Kapitel wird der Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung beschrieben. Der Entwurf orientiert sich an etablierten Architekturprinzipien \citep{bass2021, starke2020} und berücksichtigt die spezifischen Anforderungen aus Kapitel~3.
 
 \subsection{Gesamtarchitektur}
 
-Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten \citep{fowler2002}. Abbildung~\ref{fig:architektur} zeigt die fünf Schichten und ihre Beziehungen:
+Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten \citep{fowler2002}. In Abbildung~\ref{fig:architektur} werden die fünf Schichten und ihre Beziehungen dargestellt:
 
 \begin{figure}[H]
 \centering
@@ -52,7 +52,7 @@ Die API-Schicht wird mit SAP \gls{cap} implementiert und stellt eine \gls{odata}
 
 \subsubsection{Service-Schicht}
 
-Die Service-Schicht enthält die Geschäftslogik:
+Die Service-Schicht kapselt die Geschäftslogik:
 \begin{itemize}
     \item Berechnung der Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac})
     \item Aggregation pro Team und pro \gls{psp}
@@ -62,11 +62,11 @@ Die Service-Schicht enthält die Geschäftslogik:
 
 \subsubsection{Adapter-Schicht}
 
-Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen. Sie implementiert das Adapter-Pattern und ermöglicht den Austausch des Backends ohne Änderungen an der Service-Schicht.
+Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen. Sie implementiert das Adapter-Pattern und ermöglicht den Austausch des Backends, ohne dass Änderungen an der Service-Schicht erforderlich sind.
 
 \subsection{Adapter-Pattern für Backend-Austauschbarkeit}
 
-Der zentrale Entwurfsgedanke ist die Austauschbarkeit des Backends. Die Adapter-Schicht definiert eine einheitliche Schnittstelle, die von beiden Backend-Implementierungen erfüllt wird \citep{gamma1994}. Abbildung \ref{fig:adapter-detail} zeigt das Klassendiagramm.
+Der zentrale Entwurfsgedanke besteht in der Austauschbarkeit des Backends. Die Adapter-Schicht definiert eine einheitliche Schnittstelle, welche von beiden Backend-Implementierungen erfüllt wird \citep{gamma1994}. In Abbildung~\ref{fig:adapter-detail} ist das Klassendiagramm dargestellt.
 
 \begin{figure}[H]
 \centering

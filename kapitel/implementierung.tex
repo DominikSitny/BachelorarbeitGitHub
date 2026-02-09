@@ -1,10 +1,10 @@
 \section{Implementierung}
 
-Dieses Kapitel dokumentiert die Implementierung der BC Middleware auf der SAP \gls{btp}. Die Umsetzung folgt den in Kapitel~4 beschriebenen Architekturprinzipien und nutzt die in Kapitel~2 vorgestellten Technologien. Der Quellcode ist in einem Git-Repository versioniert und folgt etablierten Entwicklungspraktiken \citep{sommerville2015}.
+In diesem Kapitel wird die Implementierung der BC Middleware auf der SAP \gls{btp} dokumentiert. Die Umsetzung folgt den in Kapitel~4 beschriebenen Architekturprinzipien und nutzt die in Kapitel~2 vorgestellten Technologien. Der Quellcode ist in einem Git-Repository versioniert und folgt etablierten Entwicklungspraktiken \citep{sommerville2015}.
 
 \subsection{Projektstruktur}
 
-Die Middleware folgt der Standard-Projektstruktur des SAP \gls{cap}:
+Die Middleware folgt der Standard-Projektstruktur des SAP \gls{cap}, wie in Auflistung~\ref{lst:project-structure} dargestellt:
 
 \begin{lstlisting}[caption={Projektstruktur}, label={lst:project-structure}]
 bc_middleware/
@@ -209,11 +209,11 @@ cf push
 
 \subsection{Herausforderungen bei der Implementierung}
 
-Während der Implementierung traten mehrere Herausforderungen auf, die dokumentiert werden sollen:
+Während der Implementierung traten mehrere Herausforderungen auf, welche im Folgenden dokumentiert werden:
 
 \subsubsection{Excel-Formatierung beim Schreiben}
 
-Das Zurückschreiben in Excel-Dateien erwies sich als komplexer als erwartet. Die xlsx-Bibliothek unterstützt zwar das Schreiben, aber:
+Das Zurückschreiben in Excel-Dateien erwies sich als komplexer als ursprünglich angenommen. Die xlsx-Bibliothek unterstützt zwar das Schreiben, jedoch sind folgende Einschränkungen zu beachten:
 
 \begin{itemize}
     \item Formeln in anderen Zellen werden nicht automatisch neu berechnet
@@ -244,7 +244,7 @@ function addRowPreserveFormat(sheet, rowIndex, values) {
 
 \subsubsection{CADO-Zeitbuchungen parsen}
 
-Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) haben ein spezielles Format:
+Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) weisen ein spezielles Format auf:
 
 \begin{itemize}
     \item Deutsches Zahlenformat (Komma als Dezimaltrennzeichen)
@@ -280,7 +280,7 @@ function parseCADORow(row) {
 
 \subsubsection{Session-Validierung in jedem Request}
 
-Jeder API-Request (außer \texttt{getProjects} und \texttt{startSession}) muss die Session validieren. Dies wurde als Middleware-Funktion implementiert:
+Jeder API-Request (mit Ausnahme von \texttt{getProjects} und \texttt{startSession}) erfordert eine Session-Validierung. Diese wurde als Middleware-Funktion implementiert:
 
 \begin{lstlisting}[caption={Session-Validierung Middleware}, label={lst:session-validation}]
 function requireSession(req) {
@@ -311,7 +311,7 @@ function requireSession(req) {
 
 \subsection{API-Dokumentation}
 
-Für die Frontend-Entwickler wurde eine interaktive API-Dokumentation erstellt, die unter der Root-URL der Middleware erreichbar ist. Sie enthält:
+Für die Frontend-Entwickler wurde eine interaktive API-Dokumentation erstellt, welche unter der Root-URL der Middleware erreichbar ist. Diese umfasst:
 
 \begin{itemize}
     \item Übersicht aller Endpunkte mit Beschreibung
@@ -359,4 +359,4 @@ PSP-Zuordnungen & 4 & 1. PSP-Zuordnung-Sheet \\
 \end{tabularx}
 \end{table}
 
-Diese Testdaten (siehe Tabelle~\ref{tab:testdata}) ermöglichen realistische Tests aller Funktionen, einschließlich der Budget-Berechnungen und PSP-Zuordnungen. Die Datenmengen entsprechen einem typischen mittelgroßen SAP-Projekt.
+Diese Testdaten (siehe Tabelle~\ref{tab:testdata}) ermöglichen realistische Tests aller Funktionen, einschließlich der Budget-Berechnungen und PSP-Zuordnungen. Die Datenmengen entsprechen einem typischen mittelgroßen SAP-Implementierungsprojekt.

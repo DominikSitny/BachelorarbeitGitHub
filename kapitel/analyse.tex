@@ -1,12 +1,12 @@
 \section{Analyse}
 
-Dieses Kapitel analysiert die bestehende Situation im Budget-Controlling und definiert die Anforderungen an die zu entwickelnde Middleware. Die Analyse folgt einem strukturierten Vorgehen: Zunächst wird der Ist-Zustand erfasst, anschließend werden funktionale und nicht-funktionale Anforderungen abgeleitet \citep{sommerville2015}.
+In diesem Kapitel wird die bestehende Situation im Budget-Controlling analysiert und die Anforderungen an die zu entwickelnde Middleware definiert. Die Analyse folgt einem strukturierten Vorgehen: Zunächst wird der Ist-Zustand erfasst, anschließend werden funktionale und nicht-funktionale Anforderungen abgeleitet \citep{sommerville2015}.
 
 \subsection{Ist-Analyse}
 
 \subsubsection{Excel-basierter Workflow}
 
-Der aktuelle Workflow basiert auf einer zentralen Excel-Datei (\texttt{Budgetcontrolling.xlsx}), die über SharePoint geteilt wird. Die Datei integriert Daten aus verschiedenen Quellen mittels Power Query.
+Der aktuelle Workflow basiert auf einer zentralen Excel-Datei (\texttt{Budgetcontrolling.xlsx}), welche über SharePoint geteilt wird. Die Datei integriert Daten aus verschiedenen Quellen mittels Power Query.
 
 \begin{table}[H]
 \centering
@@ -48,7 +48,7 @@ Actual & Bereits geleistete Arbeit & CADO Stunden / 8 \\
 
 \subsubsection{Problemanalyse}
 
-Die Analyse des bestehenden Workflows zeigt folgende Probleme:
+Die Analyse des bestehenden Workflows offenbart folgende Probleme:
 
 \begin{enumerate}
     \item \textbf{Keine Echtzeitdaten}: Power Query wird nur bei manuellem Refresh aktualisiert
@@ -87,7 +87,23 @@ Die Middleware soll die beschriebenen Probleme lösen und gleichzeitig einen ein
 \label{fig:soll-architektur}
 \end{figure}
 
-Abbildung~\ref{fig:soll-architektur} zeigt die Zielarchitektur. Die zentrale Idee ist die Entkopplung des Frontends von der konkreten Datenquelle. Das Frontend kommuniziert ausschließlich mit der Middleware über eine standardisierte \gls{odata}-Schnittstelle. Die Middleware abstrahiert die Komplexität des Datenzugriffs und kann transparent zwischen Excel- und Service-Backend wechseln.
+Abbildung~\ref{fig:soll-architektur} zeigt die Zielarchitektur. Die zentrale Idee besteht in der Entkopplung des Frontends von der konkreten Datenquelle. Das Frontend kommuniziert ausschließlich mit der Middleware über eine standardisierte \gls{odata}-Schnittstelle. Die Middleware abstrahiert die Komplexität des Datenzugriffs und ermöglicht einen transparenten Wechsel zwischen Excel- und Service-Backend.
+
+\subsection{Verwandte Arbeiten}
+
+Die Problemstellung der vorliegenden Arbeit berührt mehrere Forschungsbereiche, die im Folgenden eingeordnet werden.
+
+\subsubsection{Middleware und Integrationsarchitekturen}
+
+Das Konzept der Middleware als Vermittlungsschicht zwischen heterogenen Systemen ist seit den 1990er Jahren etabliert \citep{bernstein1996}. \cite{emmerich2000} identifizierte Middleware als zentrales Element für die Integration verteilter Systeme und prognostizierte deren wachsende Bedeutung. Die Enterprise Integration Patterns von \cite{hohpe2003} bieten einen umfassenden Katalog von Integrationsmustern, darunter das in dieser Arbeit verwendete Adapter-Pattern.
+
+\subsubsection{Spreadsheet-basierte Systeme in Unternehmen}
+
+Die Verbreitung und Risiken von Spreadsheet-Anwendungen in Unternehmen sind Gegenstand umfangreicher Forschung. \cite{panko2016} beschreiben Tabellenkalkulationen als \enquote{Dark Matter} der Unternehmens-IT -- allgegenwärtig, aber schwer zu kontrollieren. \cite{powell2009} dokumentieren in ihrer Metastudie, dass Spreadsheets häufig Fehler enthalten und dennoch für geschäftskritische Entscheidungen verwendet werden. Diese Erkenntnisse unterstreichen die Relevanz von Lösungen, die einen kontrollierten Übergang zu strukturierteren Systemen ermöglichen.
+
+\subsubsection{Abgrenzung}
+
+Im Unterschied zu bestehenden Arbeiten, die sich primär auf die Fehleranalyse von Spreadsheets oder allgemeine Integrationsarchitekturen konzentrieren, adressiert diese Arbeit die spezifische Fragestellung der Backend-Austauschbarkeit im SAP-Kontext. Der Fokus liegt auf der praktischen Umsetzung einer Architektur, die sowohl Excel-basierte als auch service-orientierte Backends unterstützt.
 
 \subsection{Stakeholder-Analyse}
 
