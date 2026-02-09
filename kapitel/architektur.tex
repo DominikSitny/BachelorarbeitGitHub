@@ -1,10 +1,10 @@
 \section{Architekturentwurf}
 
-Dieses Kapitel beschreibt den Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung. Der Entwurf orientiert sich an etablierten Architekturprinzipien \citep{bass2021, starke2020} und berücksichtigt die spezifischen Anforderungen aus Kapitel 3.
+Dieses Kapitel beschreibt den Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung. Der Entwurf orientiert sich an etablierten Architekturprinzipien \citep{bass2021, starke2020} und berücksichtigt die spezifischen Anforderungen aus Kapitel~3.
 
 \subsection{Gesamtarchitektur}
 
-Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten \citep{fowler2002}:
+Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten \citep{fowler2002}. Abbildung~\ref{fig:architektur} zeigt die fünf Schichten und ihre Beziehungen:
 
 \begin{figure}[H]
 \centering
@@ -150,7 +150,7 @@ Die Middleware unterstützt mehrere Projekte. Über ein Session-Management wird 
 
 \subsection{Datenmodell}
 
-Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} definiert. Es folgt den Prinzipien des Domain-Driven Design \citep{evans2003, vernon2013} und bildet die Domänenkonzepte des Budget-Controllings ab.
+Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} definiert. Es folgt den Prinzipien des Domain-Driven Design \citep{evans2003, vernon2013} und bildet die Domänenkonzepte des Budget-Controllings ab. Abbildung~\ref{fig:er-diagramm} zeigt die Beziehungen zwischen den Entitäten.
 
 \begin{figure}[H]
 \centering
@@ -215,7 +215,7 @@ Ein besonderes Architekturmerkmal ist der PSP-Override-Mechanismus. Er ermöglic
 
 \subsection{Sequenzdiagramme}
 
-Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der Middleware.
+Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der Middleware. Abbildung~\ref{fig:seq-session} zeigt den Session-Start, Abbildung~\ref{fig:seq-assignment} die Erstellung einer PSP-Zuordnung.
 
 \subsubsection{Session-Start und Datenabruf}
 

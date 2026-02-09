@@ -1,6 +1,6 @@
 \section{Theoretische Grundlagen}
 
-Dieses Kapitel erläutert die theoretischen Grundlagen, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind. Zunächst werden die verwendeten SAP-Technologien vorgestellt, anschließend relevante Architekturmuster und abschließend die Microsoft Graph API für den SharePoint-Zugriff.
+Dieses Kapitel erläutert die theoretischen Grundlagen, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind. Zunächst werden die verwendeten SAP-Technologien vorgestellt (Abschnitt~2.1--2.3), anschließend REST und Cloud Computing (Abschnitt~2.4--2.5), dann relevante Architekturmuster (Abschnitt~2.7) und abschließend die Microsoft Graph API für den SharePoint-Zugriff (Abschnitt~2.8).
 
 \subsection{SAP Business Technology Platform}
 
@@ -214,7 +214,7 @@ Cloud-Dienste werden in drei Service-Modelle unterteilt:
     \item \textbf{Software as a Service (SaaS)}: Bereitstellung fertiger Anwendungen. Beispiel: SAP S/4HANA Cloud, Microsoft 365.
 \end{itemize}
 
-Die SAP BTP ist primär ein PaaS-Angebot, das Entwicklern eine Plattform für die Erstellung und den Betrieb von Anwendungen bereitstellt \citep{sap2024btp}.
+Wie in Abbildung~\ref{fig:cloud-models} dargestellt, ist die SAP BTP primär ein PaaS-Angebot, das Entwicklern eine Plattform für die Erstellung und den Betrieb von Anwendungen bereitstellt \citep{sap2024btp}.
 
 \subsection{OData Protocol}
 
@@ -288,7 +288,7 @@ Das Adapter-Pattern ist ein strukturelles Entwurfsmuster, das die Zusammenarbeit
 \label{fig:adapter-pattern}
 \end{figure}
 
-Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Datenquelle (Excel vs. OData-Service), ohne dass die darüberliegende Service-Schicht angepasst werden muss. Der Adapter übersetzt die spezifische Schnittstelle der Datenquelle (Excel-Datei, REST-API) in ein einheitliches internes Datenmodell.
+Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Datenquelle (Excel vs. OData-Service), ohne dass die darüberliegende Service-Schicht angepasst werden muss (siehe Abbildung~\ref{fig:adapter-pattern}). Der Adapter übersetzt die spezifische Schnittstelle der Datenquelle (Excel-Datei, REST-API) in ein einheitliches internes Datenmodell.
 
 \subsubsection{Repository Pattern}
 
