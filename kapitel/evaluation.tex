@@ -150,7 +150,7 @@ POST /startSession & -- & 45 ms & 80 ms \\
 \end{tabularx}
 \end{table}
 
-\textbf{Bewertung}: Die Antwortzeiten sind für eine Fiori-Anwendung akzeptabel. Der Großteil der Zeit entfällt auf das Parsen der Excel-Datei. Bei einem Wechsel zu OData-Services wäre mit schnelleren Antwortzeiten zu rechnen, da keine Dateitransformation erforderlich ist.
+\textbf{Bewertung}: Die gemessenen Antwortzeiten liegen größtenteils unter 1 Sekunde, was nach etablierten Usability-Richtlinien als akzeptabel gilt -- Antwortzeiten unter 1 Sekunde werden von Nutzern als flüssig wahrgenommen, während Zeiten über 10 Sekunden zu Abbrüchen führen \citep{nielsen1993}. Moderne Web-Performance-Metriken empfehlen Interaktionszeiten unter 200ms für optimale Benutzererfahrung \citep{google2020}. Der Großteil der Latenz entfällt auf das Parsen der Excel-Datei. Bei einem Wechsel zu OData-Services wäre mit schnelleren Antwortzeiten zu rechnen, da keine Dateitransformation erforderlich ist.
 
 \subsection{Testszenarien}
 
@@ -202,7 +202,7 @@ Ungültiges Projekt & 404 Not Found & \checkmark \\
 
 \subsection{SWOT-Analyse der Architektur}
 
-Eine SWOT-Analyse fasst die Stärken, Schwächen, Chancen und Risiken der gewählten Architektur zusammen:
+Eine SWOT-Analyse (Strengths, Weaknesses, Opportunities, Threats) ist ein etabliertes Instrument der strategischen Planung, das sowohl interne Faktoren (Stärken, Schwächen) als auch externe Faktoren (Chancen, Risiken) berücksichtigt \citep{helms2010}. Die folgende Analyse fasst die Bewertung der gewählten Architektur zusammen:
 
 \begin{table}[H]
 \centering
@@ -262,5 +262,5 @@ Aus der Implementierung und dem Betrieb der Middleware ergeben sich folgende Erk
 
     \item \textbf{Session-Management im RAM riskant}: Bei Serverneustart gehen Sessions verloren. Für den produktiven Einsatz wäre eine Persistierung (z.B. Redis, Datenbank) erforderlich \citep{richardson2018}.
 
-    \item \textbf{Middleware als Integrationsmuster}: Die Middleware fungiert als \enquote{Anti-Corruption Layer} \citep{vernon2013} und schützt das Frontend vor den Eigenheiten der Excel-Struktur.
+    \item \textbf{Middleware als Integrationsmuster}: Die Middleware fungiert als \enquote{Anti-Corruption Layer} \citep{vernon2013} und schützt das Frontend vor den Eigenheiten der Excel-Struktur. Dieses Muster ist auch aus den Enterprise Integration Patterns bekannt, wo es als \enquote{Message Translator} beschrieben wird \citep{hohpe2003}.
 \end{enumerate}

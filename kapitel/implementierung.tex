@@ -61,7 +61,7 @@ Die Annotation \texttt{@cds.persistence.skip} signalisiert, dass die Entitäten 
 
 \subsection{Excel-Adapter}
 
-Der Excel-Adapter ist das Herzstück der aktuellen Backend-Implementierung. Er nutzt die \texttt{xlsx}-Bibliothek (SheetJS) zum Parsen und Schreiben von Excel-Dateien \citep{sheetjs2024}. Die Bibliothek unterstützt verschiedene Formate (XLSX, XLS, CSV) und ermöglicht sowohl lesenden als auch schreibenden Zugriff.
+Der Excel-Adapter ist das Herzstück der aktuellen Backend-Implementierung. Er nutzt die \texttt{xlsx}-Bibliothek (SheetJS) zum Parsen und Schreiben von Excel-Dateien \citep{sheetjs2024}. Die Bibliothek unterstützt verschiedene Formate (XLSX, XLS, CSV) und ermöglicht sowohl lesenden als auch schreibenden Zugriff. Die Wahl einer JavaScript-Bibliothek für die Excel-Verarbeitung folgt dem Paradigma, die gesamte Server-Logik in einer einzigen Laufzeitumgebung zu halten \citep{nodejs2024}.
 
 \subsubsection{Datenextraktion}
 

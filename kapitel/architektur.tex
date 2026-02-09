@@ -320,7 +320,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
     \item Sessions sind kurzlebig (Arbeitstag)
 \end{itemize}
 
-\textbf{Trade-off}: Bei Server-Neustart gehen Sessions verloren. Benutzer müssen sich neu einloggen. Für einen Prototyp akzeptabel, für Produktion sollte Redis verwendet werden.
+\textbf{Trade-off}: Bei Server-Neustart gehen Sessions verloren. Benutzer müssen sich neu einloggen. Dieses Problem ist in verteilten Systemen bekannt und kann durch externe Session-Speicher wie Redis gelöst werden \citep{tanenbaum2017, richardson2018}. Für einen Prototyp ist die In-Memory-Lösung akzeptabel.
 
 \subsubsection{DE-03: OData statt GraphQL}
 
@@ -334,7 +334,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
     \item Keine zusätzlichen Abhängigkeiten
 \end{itemize}
 
-\textbf{Trade-off}: GraphQL wäre flexibler bei komplexen Abfragen, aber der Mehraufwand ist für diesen Use Case nicht gerechtfertigt.
+\textbf{Trade-off}: GraphQL bietet zwar flexiblere Abfragemöglichkeiten und reduziert Over-/Underfetching \citep{brito2019}, jedoch überwiegen im SAP-Kontext die Vorteile der nativen OData-Unterstützung. Studien zeigen, dass die Migration zu GraphQL erheblichen Aufwand erfordert, während OData im Enterprise-Umfeld etabliert ist \citep{vogel2018}.
 
 \subsubsection{DE-04: Adapter-Pattern statt Strategy-Pattern}
 
