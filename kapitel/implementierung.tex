@@ -1,8 +1,6 @@
 \section{Implementierung}
 
-% TODO: Implementierung ausformulieren
-
-Dieses Kapitel dokumentiert die Implementierung der BC Middleware auf der SAP \gls{btp}.
+Dieses Kapitel dokumentiert die Implementierung der BC Middleware auf der SAP \gls{btp}. Die Umsetzung folgt den in Kapitel 4 beschriebenen Architekturprinzipien und nutzt die in Kapitel 2 vorgestellten Technologien. Der Quellcode ist in einem Git-Repository versioniert und folgt etablierten Entwicklungspraktiken \citep{sommerville2015}.
 
 \subsection{Projektstruktur}
 
@@ -63,7 +61,7 @@ Die Annotation \texttt{@cds.persistence.skip} signalisiert, dass die Entitäten 
 
 \subsection{Excel-Adapter}
 
-Der Excel-Adapter ist das Herzstück der aktuellen Backend-Implementierung. Er nutzt die \texttt{xlsx}-Bibliothek zum Parsen und Schreiben von Excel-Dateien.
+Der Excel-Adapter ist das Herzstück der aktuellen Backend-Implementierung. Er nutzt die \texttt{xlsx}-Bibliothek (SheetJS) zum Parsen und Schreiben von Excel-Dateien \citep{sheetjs2024}. Die Bibliothek unterstützt verschiedene Formate (XLSX, XLS, CSV) und ermöglicht sowohl lesenden als auch schreibenden Zugriff.
 
 \subsubsection{Datenextraktion}
 
@@ -208,3 +206,157 @@ Das Deployment erfolgt mit dem Cloud Foundry CLI:
 cf login -a https://api.cf.eu10.hana.ondemand.com
 cf push
 \end{lstlisting}
+
+\subsection{Herausforderungen bei der Implementierung}
+
+Während der Implementierung traten mehrere Herausforderungen auf, die dokumentiert werden sollen:
+
+\subsubsection{Excel-Formatierung beim Schreiben}
+
+Das Zurückschreiben in Excel-Dateien erwies sich als komplexer als erwartet. Die xlsx-Bibliothek unterstützt zwar das Schreiben, aber:
+
+\begin{itemize}
+    \item Formeln in anderen Zellen werden nicht automatisch neu berechnet
+    \item Zellenformatierungen (Farben, Rahmen) müssen explizit erhalten werden
+    \item Die Power-Query-Verbindungen im Excel bleiben unberührt
+\end{itemize}
+
+\begin{lstlisting}[caption={Erhaltung der Zellenformatierung}, label={lst:excel-format}]
+function addRowPreserveFormat(sheet, rowIndex, values) {
+    values.forEach((value, colIndex) => {
+        const cellRef = XLSX.utils.encode_cell({
+            r: rowIndex, c: colIndex
+        });
+
+        // Vorhandene Formatierung der darueberliegenden Zeile kopieren
+        const templateRef = XLSX.utils.encode_cell({
+            r: rowIndex - 1, c: colIndex
+        });
+
+        sheet[cellRef] = {
+            t: typeof value === 'number' ? 'n' : 's',
+            v: value,
+            s: sheet[templateRef]?.s  // Style kopieren
+        };
+    });
+}
+\end{lstlisting}
+
+\subsubsection{CADO-Zeitbuchungen parsen}
+
+Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) haben ein spezielles Format:
+
+\begin{itemize}
+    \item Deutsches Zahlenformat (Komma als Dezimaltrennzeichen)
+    \item Datumsformat DD.MM.YYYY
+    \item PSP-Elemente mit Suffix (z.B. \enquote{C72773-001.1})
+\end{itemize}
+
+\begin{lstlisting}[caption={Parsing der CADO-Zeitbuchungen}, label={lst:cado-parse}]
+function parseCADORow(row) {
+    // Deutsches Zahlenformat: "2,500" -> 2.5
+    const parseGermanNumber = (str) => {
+        if (!str) return 0;
+        return parseFloat(str.toString()
+            .replace(/\./g, '')      // Tausendertrennzeichen entfernen
+            .replace(',', '.'));     // Komma durch Punkt ersetzen
+    };
+
+    // PSP normalisieren: "C72773-001.1" -> "C72773-001"
+    const normalizePSP = (psp) => {
+        if (!psp) return '';
+        return psp.toString().split('.')[0];
+    };
+
+    return {
+        belegnummer: row[3]?.toString() || '',
+        leistungsart: row[4]?.toString() || '',
+        datum: parseGermanDate(row[5]),
+        stunden: parseGermanNumber(row[6]),
+        psp: normalizePSP(row[8])
+    };
+}
+\end{lstlisting}
+
+\subsubsection{Session-Validierung in jedem Request}
+
+Jeder API-Request (außer \texttt{getProjects} und \texttt{startSession}) muss die Session validieren. Dies wurde als Middleware-Funktion implementiert:
+
+\begin{lstlisting}[caption={Session-Validierung Middleware}, label={lst:session-validation}]
+function requireSession(req) {
+    const sessionId = req.headers['x-session-id'];
+
+    if (!sessionId) {
+        req.reject(401, 'Keine Session-ID. Header x-session-id fehlt.');
+        return null;
+    }
+
+    const session = sessions[sessionId];
+    if (!session) {
+        req.reject(401, 'Ungueltige Session-ID. Bitte neu anmelden.');
+        return null;
+    }
+
+    // Session-Timeout pruefen (8 Stunden)
+    const age = Date.now() - new Date(session.createdAt).getTime();
+    if (age > 8 * 60 * 60 * 1000) {
+        delete sessions[sessionId];
+        req.reject(401, 'Session abgelaufen. Bitte neu anmelden.');
+        return null;
+    }
+
+    return session;
+}
+\end{lstlisting}
+
+\subsection{API-Dokumentation}
+
+Für die Frontend-Entwickler wurde eine interaktive API-Dokumentation erstellt, die unter der Root-URL der Middleware erreichbar ist. Sie enthält:
+
+\begin{itemize}
+    \item Übersicht aller Endpunkte mit Beschreibung
+    \item Request/Response-Beispiele für jeden Endpunkt
+    \item Erklärung der Session-Authentifizierung
+    \item OData Query-Optionen mit Beispielen
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\textbf{API Dokumentation - BC Middleware}\\[0.5em]
+\texttt{Base URL: /api/budget}\\[1em]
+\textbf{Session Endpunkte}\\
+\texttt{GET /getProjects()} -- Liste verfügbarer Projekte\\
+\texttt{POST /startSession} -- Session starten\\[0.5em]
+\textbf{Daten Endpunkte} (benötigen x-session-id Header)\\
+\texttt{GET /Teams} -- Alle Projekt-Teams\\
+\texttt{GET /BudgetOverview} -- Budget-Metriken pro Team\\
+...
+}}
+\caption{Auszug aus der API-Dokumentation (index.html)}
+\label{fig:api-doc}
+\end{figure}
+
+\subsection{Testdaten}
+
+Für Entwicklung und Test wurde ein Beispielprojekt \enquote{Projekt\_1} mit folgenden Daten angelegt:
+
+\begin{table}[H]
+\centering
+\caption{Testdaten im Projekt\_1}
+\label{tab:testdata}
+\begin{tabularx}{\textwidth}{Xcc}
+\toprule
+\textbf{Entität} & \textbf{Anzahl} & \textbf{Quelle} \\
+\midrule
+Teams & 14 & Prüftabellen-Sheet \\
+Timeboxes & 5 & Prüftabellen-Sheet \\
+PSP-Elemente & 113 & PSP-Elemente-Sheet \\
+User Stories & 251 & qry\_CALM\_Data-Sheet \\
+Zeitbuchungen & 3.555 & CADO-Sheet \\
+PSP-Zuordnungen & 4 & 1. PSP-Zuordnung-Sheet \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Diese Daten ermöglichen realistische Tests aller Funktionen, einschließlich der Budget-Berechnungen und PSP-Zuordnungen.

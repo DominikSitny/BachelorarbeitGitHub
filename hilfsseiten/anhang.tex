@@ -1,6 +1,65 @@
 \section*{Anhang}
 \markboth{Anhang}{Anhang}
 
-In den Anhang können zum Beispiel Tabellen, Abbildungen, transkribierte Interviews, Fragebögen oder sonstige Materialien ausgelagert werden, die für die Arbeit relevant sind, deren Berücksichtigung innerhalb des Textes allerdings die Lesbarkeit erschweren würde.
+\subsection*{A: API-Endpunkte der BC Middleware}
 
-Ein umfangreicherer Anhang sollte ein eigenes Anhangsverzeichnis erhalten, damit man sich darin leichter zurechtfinden kann.
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Methode} & \textbf{Endpunkt} & \textbf{Beschreibung} \\
+\midrule
+GET & /getProjects() & Liste verfügbarer Projekte \\
+POST & /startSession & Session starten mit Projekt \\
+GET & /Teams & Alle Projekt-Teams \\
+GET & /Timeboxes & Projektphasen \\
+GET & /PSPElements & PSP-Elemente mit Budget \\
+GET & /UserStories & User Stories mit PSP-Zuordnung \\
+GET & /BudgetOverview & Budget-Metriken pro Team \\
+GET & /BudgetOverviewByPSP & Budget-Metriken pro PSP \\
+GET & /PSPAssignments & Manuelle PSP-Zuordnungen \\
+GET & /TimeBookings & Zeitbuchungen aus CADO \\
+POST & /createPSPAssignment & PSP-Zuordnung erstellen \\
+POST & /updatePSPAssignment & PSP-Zuordnung ändern \\
+POST & /deletePSPAssignment & PSP-Zuordnung löschen \\
+\bottomrule
+\end{tabularx}
+\caption{Übersicht aller API-Endpunkte}
+\end{table}
+
+\subsection*{B: Excel-Struktur (Budgetcontrolling.xlsx)}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{lXl}
+\toprule
+\textbf{Sheet} & \textbf{Inhalt} & \textbf{Zugriff} \\
+\midrule
+qry\_CALM\_Data & User Stories mit Aufwänden & Read \\
+CADO & Zeitbuchungen (SAP-Export) & Read \\
+PSP-Elemente & Budget pro PSP und Team & Read \\
+1. PSP-Zuordnung & Manuelle Zuordnungen & Read/Write \\
+2. PSP-Zuordnung & Fallback-Zuordnungen & Read \\
+Prüftabellen & Stammdaten (Teams, Timeboxen) & Read \\
+\bottomrule
+\end{tabularx}
+\caption{Sheets in der Excel-Datei}
+\end{table}
+
+\subsection*{C: Deployment-URL}
+
+Die BC Middleware ist unter folgender URL erreichbar:
+
+\begin{center}
+\url{https://itgdev-germany-bachelorthesis-srv.cfapps.eu10.hana.ondemand.com}
+\end{center}
+
+\subsection*{D: Git-Repository}
+
+Der Quellcode ist im internen Git-Repository verfügbar:
+
+\begin{center}
+\url{https://devgit.solco.global.nttdata.com:44300/DominikSitny/BC_Middleware.git}
+\end{center}

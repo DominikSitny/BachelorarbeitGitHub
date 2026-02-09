@@ -1,6 +1,6 @@
 \section{Fazit und Ausblick}
 
-% TODO: Fazit ausformulieren
+Dieses abschließende Kapitel fasst die Ergebnisse der Arbeit zusammen, beantwortet die Forschungsfrage und gibt einen Ausblick auf zukünftige Entwicklungsmöglichkeiten.
 
 \subsection{Zusammenfassung}
 
@@ -40,17 +40,21 @@ Der geschätzte Aufwand für einen Wechsel von Excel zu \gls{odata}-Services bes
 
 \subsection{Kritische Reflexion}
 
-% TODO: Kritische Punkte ergänzen
+Eine wissenschaftliche Arbeit erfordert auch die kritische Betrachtung der eigenen Ergebnisse \citep{wohlin2012}. Folgende Einschränkungen sind zu berücksichtigen:
 
 \begin{itemize}
-    \item \textbf{SharePoint-Integration}: Die direkte SharePoint-Anbindung konnte aufgrund fehlender Berechtigungen nicht vollständig getestet werden.
+    \item \textbf{SharePoint-Integration}: Die direkte SharePoint-Anbindung konnte aufgrund fehlender Berechtigungen nicht vollständig getestet werden. Die lokale Simulation mit Dateien im \texttt{excel\_templates/}-Verzeichnis ist funktional äquivalent, aber die Latenz und Fehlerbehandlung bei Netzwerkzugriffen wurden nicht evaluiert.
 
-    \item \textbf{Session-Persistierung}: Sessions werden nur im RAM gehalten und gehen bei Serverneustart verloren.
+    \item \textbf{Session-Persistierung}: Sessions werden nur im RAM gehalten und gehen bei Serverneustart verloren. Für den produktiven Einsatz ist dies eine relevante Einschränkung, die durch eine persistente Session-Speicherung adressiert werden müsste.
 
-    \item \textbf{\gls{crud}-Tests}: Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen erfordert noch ausführliche Tests mit größeren Datenmengen.
+    \item \textbf{\gls{crud}-Tests}: Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen wurde mit begrenzten Testdaten validiert. Ausführliche Tests mit größeren Datenmengen und konkurrierenden Zugriffen stehen noch aus.
 
-    \item \textbf{Konzeptioneller OData-Adapter}: Der OData-Adapter für SAP \gls{calm} wurde nur konzeptionell beschrieben, nicht implementiert.
+    \item \textbf{Konzeptioneller OData-Adapter}: Der OData-Adapter für SAP \gls{calm} wurde nur konzeptionell beschrieben, nicht implementiert. Der tatsächliche Aufwand für den Backend-Wechsel kann daher von der Schätzung abweichen.
+
+    \item \textbf{Performance unter Last}: Die Performance-Messungen erfolgten mit einzelnen sequentiellen Anfragen. Das Verhalten unter Last (mehrere gleichzeitige Benutzer) wurde nicht systematisch untersucht.
 \end{itemize}
+
+Diese Einschränkungen schmälern nicht die Aussagekraft der Architekturentscheidungen, sollten aber bei der Weiterentwicklung berücksichtigt werden.
 
 \subsection{Ausblick}
 

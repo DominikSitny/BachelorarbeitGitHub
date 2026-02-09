@@ -1,19 +1,21 @@
 \section*{Abstract}
 
-% TODO: Abstract fertigstellen wenn Arbeit abgeschlossen
+Diese Bachelorarbeit untersucht den Architekturentwurf einer Middleware für Budget-Controlling im SAP-Umfeld. Im Fokus steht die zentrale Forschungsfrage: \textit{Wie kann eine Middleware-Architektur gestaltet werden, die einen austauschbaren Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration ermöglicht?}
 
-Diese Bachelorarbeit untersucht den Architekturentwurf einer Middleware für Budget-Controlling im SAP-Umfeld. Im Fokus steht die Frage, wie eine Middleware gestaltet werden kann, die einen nahtlosen Übergang von einem Excel-basierten Backend zu einer service-orientierten Architektur mit \gls{odata}-Services ermöglicht.
+Die entwickelte BC Middleware nutzt das SAP Cloud Application Programming Model (CAP) auf der SAP Business Technology Platform (BTP) und implementiert das Adapter-Pattern, um die Datenquellen austauschbar zu halten. Die Middleware aggregiert Daten aus einer Excel-Datei (Budgetcontrolling.xlsx), berechnet Budget-Metriken (Budget, Actual, ETC, EAC) und stellt diese über eine OData v4-konforme API für ein Fiori-Frontend bereit.
 
-Die entwickelte Lösung nutzt das SAP \gls{cap} auf der SAP \gls{btp} und implementiert das Adapter-Pattern, um die Datenquellen austauschbar zu halten. Die Middleware aggregiert Daten aus verschiedenen Quellen (Excel/SharePoint, SAP \gls{calm}) und stellt sie über eine einheitliche \gls{api} für ein Fiori-Frontend bereit.
+Die Evaluation zeigt, dass alle funktionalen Anforderungen erfüllt wurden. Der geschätzte Aufwand für einen Backend-Wechsel zu SAP Cloud ALM liegt bei 8--13 Personentagen, wobei die Service-Schicht, API-Definitionen und das Frontend unverändert bleiben. Die Antwortzeiten der API liegen im akzeptablen Bereich von 150--900 ms je nach Datenmenge.
 
-Die Arbeit vergleicht beide Backend-Ansätze hinsichtlich Wartbarkeit, Performance, Implementierungsaufwand und Erweiterbarkeit. Die Ergebnisse zeigen, dass durch konsequente Anwendung des Adapter-Patterns ein Wechsel zwischen den Backends mit minimalem Aufwand möglich ist.
+Die Arbeit demonstriert, dass durch konsequente Anwendung des Adapter-Patterns in Kombination mit SAP CAP eine austauschbare Backend-Architektur praktikabel umsetzbar ist. Sie liefert damit einen Beitrag zur Frage, wie Unternehmen ihre bestehenden Excel-Workflows schrittweise modernisieren können.
 
 \bigskip
 \large{\textbf{Abstract (English)}}
 
 \normalsize
-This bachelor thesis examines the architectural design of a middleware for budget controlling in the SAP environment. The focus is on how a middleware can be designed to enable a seamless transition from an Excel-based backend to a service-oriented architecture with OData services.
+This bachelor thesis examines the architectural design of a middleware for budget controlling in the SAP environment. The central research question is: \textit{How can a middleware architecture be designed that enables an interchangeable switch between an Excel-based backend and a service-oriented integration?}
 
-The developed solution uses SAP Cloud Application Programming Model (CAP) on the SAP Business Technology Platform (BTP) and implements the adapter pattern to keep data sources interchangeable. The middleware aggregates data from various sources (Excel/SharePoint, SAP Cloud ALM) and provides it via a unified API for a Fiori frontend.
+The developed BC Middleware uses the SAP Cloud Application Programming Model (CAP) on the SAP Business Technology Platform (BTP) and implements the adapter pattern to keep data sources interchangeable. The middleware aggregates data from an Excel file (Budgetcontrolling.xlsx), calculates budget metrics (Budget, Actual, ETC, EAC), and provides them via an OData v4-compliant API for a Fiori frontend.
 
-The thesis compares both backend approaches in terms of maintainability, performance, implementation effort, and extensibility. The results show that consistent application of the adapter pattern enables switching between backends with minimal effort.
+The evaluation shows that all functional requirements were met. The estimated effort for switching backends to SAP Cloud ALM is 8--13 person-days, with the service layer, API definitions, and frontend remaining unchanged. API response times are within acceptable range of 150--900 ms depending on data volume.
+
+The thesis demonstrates that consistent application of the adapter pattern combined with SAP CAP enables a practical implementation of interchangeable backend architecture. It contributes to the question of how companies can gradually modernize their existing Excel workflows.

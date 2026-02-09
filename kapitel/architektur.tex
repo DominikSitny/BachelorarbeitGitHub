@@ -1,17 +1,37 @@
 \section{Architekturentwurf}
 
-% TODO: Architektur ausformulieren
-
-Dieses Kapitel beschreibt den Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung.
+Dieses Kapitel beschreibt den Architekturentwurf der BC Middleware mit Fokus auf die Austauschbarkeit der Backend-Implementierung. Der Entwurf orientiert sich an etablierten Architekturprinzipien \citep{bass2021, starke2020} und berücksichtigt die spezifischen Anforderungen aus Kapitel 3.
 
 \subsection{Gesamtarchitektur}
 
-Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten:
+Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwortlichkeiten \citep{fowler2002}:
 
-% TODO: Architekturdiagramm einfügen
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}[Architekturdiagramm einfügen]\vspace{3cm}}}
+\begin{tikzpicture}[
+    layer/.style={rectangle, draw, minimum width=12cm, minimum height=1.4cm, align=center, font=\small},
+    sublayer/.style={rectangle, draw, minimum width=5.5cm, minimum height=1cm, align=center, font=\footnotesize}
+]
+    % Schichten
+    \node[layer, fill=blue!15] (pres) at (0,6) {\textbf{Präsentationsschicht}\\SAP Fiori / UI5 Frontend};
+    \node[layer, fill=green!15] (api) at (0,4.2) {\textbf{API-Schicht}\\OData v4 Service (CAP CDS)};
+    \node[layer, fill=yellow!15] (service) at (0,2.4) {\textbf{Service-Schicht}\\Geschäftslogik, Budget-Berechnungen, Session-Management};
+    \node[layer, fill=orange!15] (adapter) at (0,0.6) {\textbf{Adapter-Schicht}\\DataAdapter Interface};
+
+    % Adapter-Implementierungen
+    \node[sublayer, fill=red!10] (excel) at (-3,-1) {ExcelAdapter\\(excel-parser.js)};
+    \node[sublayer, fill=purple!10] (odata) at (3,-1) {ODataAdapter\\(konzeptionell)};
+
+    % Datenquellen
+    \node[sublayer, fill=gray!20] (sp) at (-3,-2.5) {SharePoint/Excel};
+    \node[sublayer, fill=gray!20] (calm) at (3,-2.5) {SAP Cloud ALM};
+
+    % Verbindungen
+    \draw[->, thick] (adapter.south) -- (-3,0) -- (excel.north);
+    \draw[->, thick] (adapter.south) -- (3,0) -- (odata.north);
+    \draw[->, thick] (excel.south) -- (sp.north);
+    \draw[->, thick] (odata.south) -- (calm.north);
+\end{tikzpicture}
 \caption{Gesamtarchitektur der BC Middleware}
 \label{fig:architektur}
 \end{figure}
@@ -46,9 +66,37 @@ Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen. Sie implementi
 
 \subsection{Adapter-Pattern für Backend-Austauschbarkeit}
 
-% TODO: Adapter Diagramm einfügen
+Der zentrale Entwurfsgedanke ist die Austauschbarkeit des Backends. Die Adapter-Schicht definiert eine einheitliche Schnittstelle, die von beiden Backend-Implementierungen erfüllt wird \citep{gamma1994}. Abbildung \ref{fig:adapter-detail} zeigt das Klassendiagramm.
 
-Der zentrale Entwurfsgedanke ist die Austauschbarkeit des Backends. Die Adapter-Schicht definiert eine einheitliche Schnittstelle, die von beiden Backend-Implementierungen erfüllt wird:
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    interface/.style={rectangle, draw, minimum width=4.5cm, minimum height=2.5cm, align=left, font=\footnotesize},
+    class/.style={rectangle, draw, minimum width=4cm, minimum height=1.5cm, align=center, font=\footnotesize}
+]
+    % Interface
+    \node[interface] (iface) at (0,0) {
+        \textbf{$\ll$interface$\gg$}\\
+        \textbf{DataAdapter}\\
+        \rule{4cm}{0.4pt}\\
+        +loadTeams()\\
+        +loadPSPElements()\\
+        +loadUserStories()\\
+        +loadTimeBookings()\\
+        +savePSPAssignment()
+    };
+
+    % Implementierungen
+    \node[class, fill=green!10] (excel) at (-3.5,-4) {ExcelAdapter\\(implementiert)};
+    \node[class, fill=blue!10] (odata) at (3.5,-4) {ODataAdapter\\(konzeptionell)};
+
+    % Vererbungspfeile
+    \draw[->, thick, dashed] (excel.north) -- (-3.5,-1.5) -- (iface.south west);
+    \draw[->, thick, dashed] (odata.north) -- (3.5,-1.5) -- (iface.south east);
+\end{tikzpicture}
+\caption{DataAdapter Interface und Implementierungen}
+\label{fig:adapter-detail}
+\end{figure}
 
 \begin{lstlisting}[caption={Adapter-Interface (konzeptionell)}, label={lst:adapter-interface}]
 interface DataAdapter {
@@ -102,9 +150,32 @@ Die Middleware unterstützt mehrere Projekte. Über ein Session-Management wird 
 
 \subsection{Datenmodell}
 
-Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} definiert:
+Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} definiert. Es folgt den Prinzipien des Domain-Driven Design \citep{evans2003, vernon2013} und bildet die Domänenkonzepte des Budget-Controllings ab.
 
-% TODO: ER-Diagramm einfügen
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    entity/.style={rectangle, draw, minimum width=2.8cm, minimum height=0.8cm, align=center, font=\footnotesize},
+    arrow/.style={->, >=stealth}
+]
+    % Entitäten
+    \node[entity, fill=blue!20] (team) at (0,3) {Teams};
+    \node[entity, fill=green!20] (psp) at (4,3) {PSPElements};
+    \node[entity, fill=yellow!20] (us) at (8,3) {UserStories};
+    \node[entity, fill=orange!20] (tb) at (0,0) {TimeBookings};
+    \node[entity, fill=red!20] (pa) at (4,0) {PSPAssignments};
+    \node[entity, fill=purple!20] (bo) at (8,0) {BudgetOverview};
+
+    % Beziehungen
+    \draw[arrow] (psp) -- node[above, font=\tiny] {team} (team);
+    \draw[arrow] (us) -- node[above, font=\tiny] {pspElement} (psp);
+    \draw[arrow] (tb) -- node[left, font=\tiny] {psp} (psp);
+    \draw[arrow] (pa) -- node[above, font=\tiny] {psp} (psp);
+    \draw[arrow] (bo) -- node[right, font=\tiny] {aggregiert} (team);
+\end{tikzpicture}
+\caption{Vereinfachtes ER-Diagramm der Entitäten}
+\label{fig:er-diagramm}
+\end{figure}
 
 \subsubsection{Entitäten}
 
@@ -140,4 +211,173 @@ Ein besonderes Architekturmerkmal ist der PSP-Override-Mechanismus. Er ermöglic
    - "1. PSP-Zuordnung" wird als Override angewendet
    - UserStory.pspElement wird ueberschrieben
 4. -> ETC-Berechnung nutzt das neue PSP
+\end{lstlisting}
+
+\subsection{Sequenzdiagramme}
+
+Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der Middleware.
+
+\subsubsection{Session-Start und Datenabruf}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    actor/.style={rectangle, draw, minimum width=1.5cm, minimum height=0.8cm, align=center, font=\footnotesize},
+    arrow/.style={->, >=stealth, thick},
+    note/.style={font=\tiny, align=left}
+]
+    % Akteure
+    \node[actor] (client) at (0,0) {Frontend};
+    \node[actor] (api) at (4,0) {API-Schicht};
+    \node[actor] (service) at (8,0) {Service};
+    \node[actor] (adapter) at (12,0) {Adapter};
+
+    % Lebenslinien
+    \draw[dashed] (0,-0.5) -- (0,-8);
+    \draw[dashed] (4,-0.5) -- (4,-8);
+    \draw[dashed] (8,-0.5) -- (8,-8);
+    \draw[dashed] (12,-0.5) -- (12,-8);
+
+    % Nachrichten
+    \draw[arrow] (0,-1) -- node[above, font=\tiny] {POST /startSession} (4,-1);
+    \draw[arrow] (4,-1.5) -- node[above, font=\tiny] {createSession()} (8,-1.5);
+    \draw[arrow, dashed] (8,-2) -- node[above, font=\tiny] {sessionId} (4,-2);
+    \draw[arrow, dashed] (4,-2.5) -- node[above, font=\tiny] {\{sessionId\}} (0,-2.5);
+
+    \draw[arrow] (0,-3.5) -- node[above, font=\tiny] {GET /BudgetOverview} (4,-3.5);
+    \draw[arrow] (4,-4) -- node[above, font=\tiny] {validateSession()} (8,-4);
+    \draw[arrow] (8,-4.5) -- node[above, font=\tiny] {loadData()} (12,-4.5);
+    \draw[arrow, dashed] (12,-5) -- node[above, font=\tiny] {rawData} (8,-5);
+    \draw[arrow] (8,-5.5) -- node[above, font=\tiny] {calculateMetrics()} (8,-6);
+    \draw[arrow, dashed] (8,-6.5) -- node[above, font=\tiny] {budgetOverview} (4,-6.5);
+    \draw[arrow, dashed] (4,-7) -- node[above, font=\tiny] {JSON Response} (0,-7);
+\end{tikzpicture}
+\caption{Sequenzdiagramm: Session-Start und Datenabruf}
+\label{fig:seq-session}
+\end{figure}
+
+\subsubsection{PSP-Zuordnung erstellen}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    actor/.style={rectangle, draw, minimum width=1.5cm, minimum height=0.8cm, align=center, font=\footnotesize},
+    arrow/.style={->, >=stealth, thick}
+]
+    % Akteure
+    \node[actor] (client) at (0,0) {Frontend};
+    \node[actor] (api) at (4,0) {API-Schicht};
+    \node[actor] (service) at (8,0) {Service};
+    \node[actor] (adapter) at (12,0) {Adapter};
+
+    % Lebenslinien
+    \draw[dashed] (0,-0.5) -- (0,-7);
+    \draw[dashed] (4,-0.5) -- (4,-7);
+    \draw[dashed] (8,-0.5) -- (8,-7);
+    \draw[dashed] (12,-0.5) -- (12,-7);
+
+    % Nachrichten
+    \draw[arrow] (0,-1) -- node[above, font=\tiny] {POST /createPSPAssignment} (4,-1);
+    \draw[arrow] (4,-1.5) -- node[above, font=\tiny] {validateSession()} (8,-1.5);
+    \draw[arrow] (8,-2) -- node[above, font=\tiny] {validateAssignment()} (8,-2.5);
+    \draw[arrow] (8,-3) -- node[above, font=\tiny] {checkTeamMismatch()} (8,-3.5);
+    \draw[arrow] (8,-4) -- node[above, font=\tiny] {savePSPAssignment()} (12,-4);
+    \draw[arrow] (12,-4.5) -- node[above, font=\tiny] {writeToExcel()} (12,-5);
+    \draw[arrow, dashed] (12,-5.5) -- node[above, font=\tiny] {success} (8,-5.5);
+    \draw[arrow, dashed] (8,-6) -- node[above, font=\tiny] {\{success, warnings\}} (4,-6);
+    \draw[arrow, dashed] (4,-6.5) -- node[above, font=\tiny] {JSON Response} (0,-6.5);
+\end{tikzpicture}
+\caption{Sequenzdiagramm: PSP-Zuordnung erstellen}
+\label{fig:seq-assignment}
+\end{figure}
+
+\subsection{Designentscheidungen}
+
+Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \citep{bass2021}.
+
+\subsubsection{DE-01: Keine Datenbank}
+
+\textbf{Entscheidung}: Die Middleware verwendet keine eigene Datenbank, sondern liest Daten bei jedem Request direkt aus der Excel-Datei.
+
+\textbf{Begründung}:
+\begin{itemize}
+    \item Excel bleibt \enquote{Single Source of Truth}
+    \item Keine Synchronisationsprobleme zwischen DB und Excel
+    \item Einfacheres Deployment (keine DB-Bindung auf BTP nötig)
+    \item Konsistenz mit bestehendem Workflow der Anwender
+\end{itemize}
+
+\textbf{Trade-off}: Höhere Latenz bei jedem Request, da Excel geparst werden muss. Für die erwartete Nutzerzahl (< 50 gleichzeitig) akzeptabel.
+
+\subsubsection{DE-02: Session-Management im RAM}
+
+\textbf{Entscheidung}: Sessions werden im Arbeitsspeicher des Servers gehalten, nicht persistiert.
+
+\textbf{Begründung}:
+\begin{itemize}
+    \item Einfache Implementierung
+    \item Keine zusätzliche Infrastruktur (Redis, DB) erforderlich
+    \item Sessions sind kurzlebig (Arbeitstag)
+\end{itemize}
+
+\textbf{Trade-off}: Bei Server-Neustart gehen Sessions verloren. Benutzer müssen sich neu einloggen. Für einen Prototyp akzeptabel, für Produktion sollte Redis verwendet werden.
+
+\subsubsection{DE-03: OData statt GraphQL}
+
+\textbf{Entscheidung}: Die API wird als OData v4 Service implementiert, nicht als GraphQL.
+
+\textbf{Begründung}:
+\begin{itemize}
+    \item SAP-Ökosystem ist auf OData ausgerichtet
+    \item SAP Fiori erwartet OData-Services
+    \item SAP CAP generiert OData automatisch aus CDS
+    \item Keine zusätzlichen Abhängigkeiten
+\end{itemize}
+
+\textbf{Trade-off}: GraphQL wäre flexibler bei komplexen Abfragen, aber der Mehraufwand ist für diesen Use Case nicht gerechtfertigt.
+
+\subsubsection{DE-04: Adapter-Pattern statt Strategy-Pattern}
+
+\textbf{Entscheidung}: Das Adapter-Pattern wird zur Abstraktion der Datenquellen verwendet.
+
+\textbf{Begründung}:
+\begin{itemize}
+    \item Adapter übersetzt zwischen inkompatiblen Schnittstellen (Excel $\leftrightarrow$ OData)
+    \item Klare Verantwortlichkeit: Datenquelle $\rightarrow$ einheitliches Modell
+    \item Strategy-Pattern wäre bei austauschbaren Algorithmen passender \citep{gamma1994}
+\end{itemize}
+
+\subsection{Fehlerbehandlung}
+
+Die Middleware implementiert eine einheitliche Fehlerbehandlung für alle API-Endpunkte:
+
+\begin{table}[H]
+\centering
+\caption{HTTP-Statuscodes und Fehlerszenarien}
+\label{tab:error-handling}
+\begin{tabularx}{\textwidth}{clX}
+\toprule
+\textbf{Code} & \textbf{Bedeutung} & \textbf{Szenario} \\
+\midrule
+200 & OK & Erfolgreiche Anfrage \\
+201 & Created & PSP-Zuordnung erfolgreich erstellt \\
+400 & Bad Request & Ungültige Parameter (z.B. fehlende User Story) \\
+401 & Unauthorized & Keine oder ungültige Session-ID \\
+404 & Not Found & Projekt oder Ressource existiert nicht \\
+409 & Conflict & PSP-Zuordnung existiert bereits \\
+500 & Server Error & Excel-Datei nicht lesbar, interner Fehler \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Fehler werden als JSON-Objekt mit \texttt{error}-Feld zurückgegeben:
+
+\begin{lstlisting}[caption={Fehler-Response Format}, label={lst:error-response}]
+{
+    "error": {
+        "code": "NO_SESSION",
+        "message": "Keine aktive Session. Bitte zuerst startSession aufrufen.",
+        "target": "x-session-id"
+    }
+}
 \end{lstlisting}
