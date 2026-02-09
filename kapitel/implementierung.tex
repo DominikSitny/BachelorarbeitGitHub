@@ -360,3 +360,83 @@ PSP-Zuordnungen & 4 & 1. PSP-Zuordnung-Sheet \\
 \end{table}
 
 Diese Testdaten (siehe Tabelle~\ref{tab:testdata}) ermöglichen realistische Tests aller Funktionen, einschließlich der Budget-Berechnungen und PSP-Zuordnungen. Die Datenmengen entsprechen einem typischen mittelgroßen SAP-Implementierungsprojekt.
+
+\subsection{Qualitätssicherung durch automatisierte Tests}
+
+Zur Sicherstellung der Softwarequalität wurde eine umfassende Test-Suite mit dem JavaScript-Testframework Jest implementiert \citep{jest2024}. Die 77 automatisierten Tests gliedern sich in Unit- und Integrationstests:
+
+\begin{table}[H]
+\centering
+\caption{Übersicht der automatisierten Tests}
+\label{tab:tests}
+\begin{tabularx}{\textwidth}{Xcc}
+\toprule
+\textbf{Kategorie} & \textbf{Anzahl} & \textbf{Typ} \\
+\midrule
+Budget-Berechnungen & 16 & Unit \\
+Session-Management & 13 & Unit \\
+Excel-Parser & 9 & Unit \\
+API-Endpoints & 39 & Integration \\
+\midrule
+\textbf{Gesamt} & \textbf{77} & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Unit-Tests}
+
+Die Unit-Tests prüfen isolierte Funktionen ohne externe Abhängigkeiten:
+
+\begin{lstlisting}[caption={Beispiel Unit-Test für Budget-Berechnung}, label={lst:unit-test}]
+describe('calculateBudgetByTeam', () => {
+    it('sollte Budget pro Team korrekt aggregieren', () => {
+        const pspElemente = [
+            { psp: 'PSP-001', team: 'Team A', budgetPT: 100 },
+            { psp: 'PSP-002', team: 'Team A', budgetPT: 50 },
+            { psp: 'PSP-003', team: 'Team B', budgetPT: 200 }
+        ];
+
+        const result = calculateBudgetByTeam(pspElemente);
+
+        expect(result['Team A']).toBe(150);
+        expect(result['Team B']).toBe(200);
+    });
+});
+\end{lstlisting}
+
+Die Tests validieren unter anderem:
+\begin{itemize}
+    \item Korrekte Aggregation der Budget-Metriken (Budget PT, Actual PT, ETC, EAC)
+    \item Konvertierung von Stunden zu Personentagen (8h = 1 PT)
+    \item Auflösung von PSP-Suffixen (z.B. \enquote{C72773-001.1} $\rightarrow$ \enquote{C72773-001})
+    \item Session-Lifecycle und Timeout-Logik (8 Stunden)
+    \item Parsing deutscher Zahlenformate (Komma als Dezimaltrennzeichen)
+\end{itemize}
+
+\subsubsection{Integrationstests}
+
+Die Integrationstests prüfen das Zusammenspiel der Komponenten mit realen Testdaten aus der Budgetcontrolling.xlsx:
+
+\begin{lstlisting}[caption={Beispiel Integrationstest}, label={lst:integration-test}]
+describe('GET /BudgetOverview', () => {
+    it('sollte Budget-Metriken pro Team berechnen', () => {
+        const pspToTeam = createPspToTeamMapping(testData.pspElemente);
+        const actualByTeam = calculateActualByTeam(
+            testData.timeBookings, pspToTeam
+        );
+
+        // Gesamte Actual PT sollte positiv sein
+        const totalActual = Object.values(actualByTeam)
+            .reduce((a, b) => a + b, 0);
+        expect(totalActual).toBeGreaterThan(0);
+    });
+});
+\end{lstlisting}
+
+Die Tests werden mit folgenden Befehlen ausgeführt:
+
+\begin{lstlisting}[caption={Test-Befehle}, label={lst:test-commands}]
+npm test              # Alle Tests ausfuehren
+npm run test:watch    # Tests im Watch-Modus
+npm run test:coverage # Coverage-Report generieren
+\end{lstlisting}
