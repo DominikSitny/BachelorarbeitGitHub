@@ -363,7 +363,7 @@ Diese Testdaten (siehe Tabelle~\ref{tab:testdata}) ermöglichen realistische Tes
 
 \subsection{Qualitätssicherung durch automatisierte Tests}
 
-Zur Sicherstellung der Softwarequalität wurde eine umfassende Test-Suite mit dem JavaScript-Testframework Jest implementiert \citep{jest2024}. Die 77 automatisierten Tests gliedern sich in Unit- und Integrationstests:
+Zur Sicherstellung der Softwarequalität wurde eine umfassende Test-Suite mit dem JavaScript-Testframework Jest implementiert \citep{jest2024}. Die 113 automatisierten Tests gliedern sich in Unit- und Integrationstests:
 
 \begin{table}[H]
 \centering
@@ -373,15 +373,17 @@ Zur Sicherstellung der Softwarequalität wurde eine umfassende Test-Suite mit de
 \toprule
 \textbf{Kategorie} & \textbf{Anzahl} & \textbf{Typ} \\
 \midrule
-Budget-Berechnungen & 16 & Unit \\
+Budget-Berechnungen & 52 & Unit \\
 Session-Management & 13 & Unit \\
 Excel-Parser & 9 & Unit \\
 API-Endpoints & 39 & Integration \\
 \midrule
-\textbf{Gesamt} & \textbf{77} & \\
+\textbf{Gesamt} & \textbf{113} & \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+Die Budget-Berechnungslogik wurde in ein separates Modul (\texttt{budget-calculations.js}) extrahiert, um eine bessere Testbarkeit zu erreichen. Dieses Modul erreicht eine Testabdeckung von 100\,\%.
 
 \subsubsection{Unit-Tests}
 
