@@ -1,6 +1,6 @@
 \section{Theoretische Grundlagen}
 
-In diesem Kapitel werden die theoretischen Grundlagen erläutert, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind. Zunächst werden die verwendeten SAP-Technologien vorgestellt (Abschnitt~2.1--2.3), anschließend REST und Cloud Computing (Abschnitt~2.4--2.5), dann relevante Architekturmuster (Abschnitt~2.6) und abschließend die Microsoft Graph API für den SharePoint-Zugriff (Abschnitt~2.7).
+In diesem Kapitel werden die theoretischen Grundlagen erläutert, die für das Verständnis der entwickelten Middleware-Architektur erforderlich sind. Zunächst werden die verwendeten SAP-Technologien vorgestellt (Abschnitt~2.1--2.2), anschließend das OData-Protokoll (Abschnitt~2.3), dann relevante Architekturmuster (Abschnitt~2.4) und abschließend die Microsoft Graph API für den SharePoint-Zugriff (Abschnitt~2.5).
 
 \subsection{SAP Business Technology Platform}
 
@@ -78,67 +78,6 @@ module.exports = class BudgetService extends cds.ApplicationService {
 Die verfügbaren Ereignisse gliedern sich in \texttt{before}-Handler, die vor der Operation ausgeführt werden und typischerweise der Validierung dienen, \texttt{on}-Handler, welche die Standardimplementierung der Operation ersetzen, sowie \texttt{after}-Handler für nachgelagerte Transformationen und Logging.
 
 Dieses Modell ermöglicht eine saubere Trennung zwischen der deklarativen API-Definition in CDS und der imperativen Geschäftslogik in JavaScript.
-
-\subsection{REST und RESTful APIs}
-
-Representational State Transfer (REST) ist ein Architekturstil für verteilte Systeme, der von Roy Fielding in seiner Dissertation definiert wurde \citep{fielding2000}. REST basiert auf sechs Grundprinzipien. Das erste Prinzip ist die strikte Trennung zwischen Client und Server (Client-Server-Architektur), die eine unabhängige Entwicklung und Skalierung beider Komponenten ermöglicht. Die Zustandslosigkeit als zweites Prinzip erfordert, dass jede Anfrage alle zur Verarbeitung notwendigen Informationen enthält -- der Server speichert keinen Client-Zustand zwischen Anfragen. Drittens müssen Antworten als cachebar oder nicht-cachebar gekennzeichnet sein (Cachebarkeit), um die Netzwerkeffizienz zu verbessern. Das vierte Prinzip der einheitlichen Schnittstelle besagt, dass Ressourcen über URIs identifiziert und über standardisierte HTTP-Methoden manipuliert werden. Fünftens kann die Architektur als Schichtensystem aus mehreren für den Client transparenten Schichten bestehen (Load Balancer, Caches, Gateways). Das sechste, optionale Prinzip Code on Demand erlaubt es Servern, ausführbaren Code an Clients zu senden.
-
-Die HTTP-Methoden werden in REST wie folgt verwendet:
-
-\begin{table}[H]
-\centering
-\caption{HTTP-Methoden in REST}
-\label{tab:http-methods}
-\begin{tabularx}{\textwidth}{llX}
-\toprule
-\textbf{Methode} & \textbf{CRUD} & \textbf{Beschreibung} \\
-\midrule
-GET & Read & Ressource abrufen (idempotent, sicher) \\
-POST & Create & Neue Ressource erstellen \\
-PUT & Update & Ressource vollständig ersetzen (idempotent) \\
-PATCH & Update & Ressource teilweise aktualisieren \\
-DELETE & Delete & Ressource löschen (idempotent) \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-OData baut auf diesen REST-Prinzipien auf und erweitert sie um standardisierte Query-Optionen und Metadaten \citep{oasis2020odata}. Im Vergleich zu anderen API-Stilen bietet REST eine gute Balance zwischen Einfachheit und Ausdrucksstärke, was zu seiner weiten Verbreitung im Enterprise-Umfeld beigetragen hat \citep{lauret2019}.
-
-\subsection{Cloud Computing Grundlagen}
-
-Cloud Computing bezeichnet die bedarfsgerechte Bereitstellung von IT-Ressourcen über das Internet \citep{erl2013}. Das National Institute of Standards and Technology (NIST) definiert in seiner weithin anerkannten Definition fünf wesentliche Charakteristiken \citep{mell2011}: On-Demand Self-Service ermöglicht es Nutzern, Ressourcen automatisch und ohne menschliche Interaktion bereitzustellen. Broad Network Access stellt sicher, dass Dienste über Standardnetzwerke und heterogene Client-Plattformen verfügbar sind. Beim Resource Pooling werden Ressourcen des Anbieters gebündelt und dynamisch mehreren Nutzern zugewiesen (Multi-Tenancy). Rapid Elasticity bezeichnet die Fähigkeit, Kapazitäten schnell und oft automatisch bereitzustellen. Schließlich gewährleistet Measured Service, dass die Ressourcennutzung gemessen, überwacht und transparent abgerechnet wird.
-
-\subsubsection{Service-Modelle}
-
-Cloud-Dienste werden in drei Service-Modelle unterteilt:
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    layer/.style={rectangle, draw, minimum width=4cm, minimum height=1cm, align=center, font=\small}
-]
-    % IaaS
-    \node[layer, fill=red!20] (iaas-infra) at (0,0) {Infrastructure};
-    \node[above] at (0,0.7) {\textbf{IaaS}};
-
-    % PaaS
-    \node[layer, fill=orange!20] (paas-infra) at (5,0) {Infrastructure};
-    \node[layer, fill=yellow!20] (paas-plat) at (5,1.2) {Platform};
-    \node[above] at (5,1.9) {\textbf{PaaS}};
-
-    % SaaS
-    \node[layer, fill=green!20] (saas-infra) at (10,0) {Infrastructure};
-    \node[layer, fill=blue!20] (saas-plat) at (10,1.2) {Platform};
-    \node[layer, fill=purple!20] (saas-app) at (10,2.4) {Application};
-    \node[above] at (10,3.1) {\textbf{SaaS}};
-\end{tikzpicture}
-\caption{Cloud Service-Modelle}
-\label{fig:cloud-models}
-\end{figure}
-
-Infrastructure as a Service (IaaS) umfasst die Bereitstellung von Rechenleistung, Speicher und Netzwerk, wie beispielsweise Amazon EC2 oder Microsoft Azure VMs. Platform as a Service (PaaS) stellt eine Entwicklungs- und Laufzeitumgebung bereit, bei der der Nutzer lediglich die Anwendung verwaltet -- Beispiele hierfür sind SAP BTP Cloud Foundry und Heroku. Software as a Service (SaaS) bezeichnet die Bereitstellung fertiger Anwendungen wie SAP S/4HANA Cloud oder Microsoft 365.
-
-Wie in Abbildung~\ref{fig:cloud-models} dargestellt, ist die SAP BTP primär ein PaaS-Angebot, das Entwicklern eine Plattform für die Erstellung und den Betrieb von Anwendungen bereitstellt \citep{sap2024btp}.
 
 \subsection{OData Protocol}
 
