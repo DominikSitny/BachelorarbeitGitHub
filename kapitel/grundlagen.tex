@@ -149,27 +149,6 @@ Die Vorteile des Repository-Patterns liegen in der Entkopplung der Geschäftslog
 
 In Kombination mit dem Adapter-Pattern ergibt sich eine Architektur, bei der das Repository die Adapter-Schnittstelle nutzt und die Service-Schicht nur mit dem Repository kommuniziert.
 
-\subsubsection{Schichtenarchitektur}
-
-Die Schichtenarchitektur (engl. Layered Architecture) ist eines der fundamentalsten Architekturmuster in der Softwareentwicklung \citep{bass2021, starke2020}. Sie strukturiert eine Anwendung in horizontale Schichten, wobei jede Schicht eine spezifische Verantwortlichkeit hat und nur mit den direkt benachbarten Schichten kommuniziert.
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    layer/.style={rectangle, draw, minimum width=10cm, minimum height=1.2cm, align=center}
-]
-    \node[layer, fill=blue!10] (pres) at (0,4) {Präsentationsschicht (Fiori Frontend)};
-    \node[layer, fill=green!10] (api) at (0,2.5) {API-Schicht (OData Service)};
-    \node[layer, fill=yellow!10] (service) at (0,1) {Service-Schicht (Geschäftslogik)};
-    \node[layer, fill=orange!10] (adapter) at (0,-0.5) {Adapter-Schicht (Excel/OData Connector)};
-    \node[layer, fill=red!10] (data) at (0,-2) {Datenschicht (SharePoint/CALM)};
-\end{tikzpicture}
-\caption{Schichtenarchitektur der BC Middleware}
-\label{fig:layer-architecture}
-\end{figure}
-
-Die Vorteile dieser Struktur liegen in der klaren Separation of Concerns, bei der jede Schicht eine definierte Aufgabe hat \citep{sommerville2015}. Änderungen in einer Schicht haben minimale Auswirkungen auf andere Schichten, was die Wartbarkeit erhöht. Zudem können Schichten in anderen Kontexten wiederverwendet und isoliert getestet werden.
-
 \subsection{Microsoft Graph API}
 
 Die Microsoft \gls{graph} ermöglicht den programmgesteuerten Zugriff auf Microsoft 365-Dienste, einschließlich SharePoint und OneDrive \citep{microsoft2024graph}. Sie bietet einen einheitlichen Endpunkt (\texttt{https://graph.microsoft.com}) für den Zugriff auf verschiedene Microsoft-Dienste.
