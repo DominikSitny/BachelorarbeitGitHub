@@ -12,7 +12,7 @@ Für den Vergleich der Backend-Ansätze werden sechs Kriterien herangezogen: der
 \centering
 \caption{Vergleich der Backend-Ansätze}
 \label{tab:vergleich}
-\begin{tabularx}{\textwidth}{lXX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Kriterium} & \textbf{Excel/SharePoint} & \textbf{OData Services} \\
 \midrule
@@ -39,7 +39,7 @@ Lernkurve Endnutzer & Gering -- Excel bekannt & Höher -- neue Oberfläche \\
 \centering
 \caption{Erfüllung der funktionalen Anforderungen}
 \label{tab:fa-erfuellung}
-\begin{tabularx}{\textwidth}{lXc}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xc}
 \toprule
 \textbf{ID} & \textbf{Anforderung} & \textbf{Status} \\
 \midrule
@@ -62,7 +62,7 @@ FA-07 & Änderungen in Excel schreiben & Erfüllt \\
 \centering
 \caption{Erfüllung der nicht-funktionalen Anforderungen}
 \label{tab:nfa-erfuellung}
-\begin{tabularx}{\textwidth}{lXc}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xc}
 \toprule
 \textbf{ID} & \textbf{Anforderung} & \textbf{Status} \\
 \midrule
@@ -95,7 +95,7 @@ Basierend auf der Implementierungserfahrung lässt sich der Aufwand für einen B
 \centering
 \caption{Geschätzter Aufwand für Backend-Wechsel zu OData}
 \label{tab:aufwand}
-\begin{tabularx}{\textwidth}{Xlc}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}Xlc}
 \toprule
 \textbf{Komponente} & \textbf{Aufgabe} & \textbf{Aufwand} \\
 \midrule
@@ -144,7 +144,7 @@ Die Middleware wurde anhand definierter Testszenarien validiert:
 \centering
 \caption{Funktionale Testszenarien}
 \label{tab:functional-tests}
-\begin{tabularx}{\textwidth}{clXc}
+\begin{tabularx}{\textwidth}{cl>{\raggedright\arraybackslash}Xc}
 \toprule
 \textbf{ID} & \textbf{Szenario} & \textbf{Erwartetes Ergebnis} & \textbf{Status} \\
 \midrule
@@ -168,7 +168,7 @@ T-10 & Projekt wechseln & Neue Session für anderes Projekt & \checkmark \\
 \centering
 \caption{Grenzwert-Testszenarien}
 \label{tab:boundary-tests}
-\begin{tabularx}{\textwidth}{lXc}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xc}
 \toprule
 \textbf{Szenario} & \textbf{Erwartetes Verhalten} & \textbf{Status} \\
 \midrule

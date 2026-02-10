@@ -1,6 +1,6 @@
 \section{Analyse}
 
-In diesem Kapitel wird die bestehende Situation im Budget-Controlling analysiert und die Anforderungen an die zu entwickelnde Middleware definiert. Die Analyse folgt einem strukturierten Vorgehen: Zunächst wird der Ist-Zustand erfasst, anschließend werden funktionale und nicht-funktionale Anforderungen abgeleitet \citep{sommerville2015}.
+In diesem Kapitel wird die bestehende Situation im Budget-Controlling analysiert und die Anforderungen an die zu entwickelnde Middleware definiert. Die Analyse folgt nach \cite{sommerville2015} einem strukturierten Vorgehen: Zunächst wird der Ist-Zustand erfasst, anschließend werden funktionale und nicht-funktionale Anforderungen abgeleitet.
 
 \subsection{Ist-Analyse}
 
@@ -12,7 +12,7 @@ Der aktuelle Workflow basiert auf einer zentralen Excel-Datei (\texttt{Budgetcon
 \centering
 \caption{Sheets in Budgetcontrolling.xlsx}
 \label{tab:excel-sheets}
-\begin{tabularx}{\textwidth}{lXl}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xl}
 \toprule
 \textbf{Sheet} & \textbf{Zweck} & \textbf{Quelle} \\
 \midrule
@@ -34,7 +34,7 @@ Die folgenden Metriken werden für das Budget-Controlling verwendet. Diese Kennz
 \centering
 \caption{Budget-Metriken und ihre Berechnung}
 \label{tab:metriken}
-\begin{tabularx}{\textwidth}{lXl}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xl}
 \toprule
 \textbf{Metrik} & \textbf{Beschreibung} & \textbf{Berechnung} \\
 \midrule
@@ -45,6 +45,8 @@ Actual & Bereits geleistete Arbeit & CADO Stunden / 8 \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+Zur Veranschaulichung ein Beispiel: Für ein Team mit einem geplanten Budget von 120~PT wurden bisher 55,53~PT tatsächlich geleistet (Actual), die aus den CADO-Zeitbuchungen berechnet werden (444,24 Stunden / 8). Der verbleibende Restaufwand (ETC) beträgt laut den User Stories mit \gls{psp}-Zuordnung 63,88~PT. Daraus ergibt sich eine Gesamtprognose (EAC) von 119,41~PT (55,53 + 63,88), die in diesem Fall knapp unter dem Budget liegt.
 
 \subsubsection{Problemanalyse}
 
@@ -105,7 +107,7 @@ Für den erfolgreichen Entwurf der Middleware ist das Verständnis der beteiligt
 \centering
 \caption{Stakeholder und ihre Interessen}
 \label{tab:stakeholder}
-\begin{tabularx}{\textwidth}{lXX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Stakeholder} & \textbf{Rolle} & \textbf{Interesse} \\
 \midrule
@@ -130,7 +132,7 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System
 
 \begin{table}[H]
 \centering
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Akteur} & Projektleiter \\
 \midrule
@@ -152,7 +154,7 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System
 
 \begin{table}[H]
 \centering
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Akteur} & Controller \\
 \midrule
@@ -177,7 +179,7 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System
 
 \begin{table}[H]
 \centering
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Akteur} & Alle Benutzer \\
 \midrule
@@ -204,7 +206,7 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System
 \centering
 \caption{Funktionale Anforderungen}
 \label{tab:fa}
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{ID} & \textbf{Anforderung} \\
 \midrule
@@ -225,7 +227,7 @@ FA-07 & Das System muss Änderungen zurück in Excel schreiben können \\
 \centering
 \caption{Nicht-funktionale Anforderungen}
 \label{tab:nfa}
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{ID} & \textbf{Anforderung} \\
 \midrule
@@ -246,7 +248,7 @@ Die Anforderungen werden nach der MoSCoW-Methode priorisiert \citep{sommerville2
 \centering
 \caption{Priorisierung der Anforderungen}
 \label{tab:priorisierung}
-\begin{tabularx}{\textwidth}{clX}
+\begin{tabularx}{\textwidth}{cl>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Prio} & \textbf{ID} & \textbf{Anforderung} \\
 \midrule
