@@ -114,11 +114,17 @@ interface DataAdapter {
 
 \subsubsection{Excel-Adapter}
 
-Der Excel-Adapter liest Daten aus der \texttt{Budgetcontrolling.xlsx} und schreibt Änderungen zurück. Er ist verantwortlich für das Parsen der verschiedenen Sheets, das Mapping auf das einheitliche Datenmodell sowie den Write-Back für \gls{psp}-Zuordnungen.
+Der Excel-Adapter ist die aktuell implementierte Variante des DataAdapter-Interfaces. Er liest sämtliche Daten aus einer einzigen \texttt{Budgetcontrolling.xlsx}, die mehrere Sheets mit unterschiedlichen Strukturen enthält (vgl. Tabelle~\ref{tab:excel-sheets} in Kapitel~3). Die zentrale Herausforderung besteht darin, diese heterogenen Sheet-Formate -- tabellarische Stammdaten, SAP-Listenexporte mit spezieller Spaltenstruktur und manuell gepflegte Zuordnungstabellen -- auf ein einheitliches Datenmodell abzubilden.
+
+Der Adapter übernimmt dabei drei Aufgaben. Erstens das Parsen der verschiedenen Sheets: Jedes Sheet erfordert eine individuelle Parsing-Logik, da sich Spaltenbezeichnungen, Datentypen und Startzeilen unterscheiden. Insbesondere das CADO-Sheet mit den Zeitbuchungen weicht vom Standardformat ab, da es als SAP-Listenexport ein spezielles Spaltenlayout und das deutsche Zahlenformat verwendet. Zweitens das Mapping auf das einheitliche Datenmodell: Die geparsten Rohdaten werden in die \gls{cds}-Entitäten überführt, sodass die Service-Schicht keine Kenntnis über die Excel-Struktur benötigt. Drittens der Write-Back für \gls{psp}-Zuordnungen: Neue, geänderte oder gelöschte Zuordnungen werden direkt in das Sheet \enquote{1. PSP-Zuordnung} geschrieben, wobei die übrigen Sheets unverändert bleiben.
+
+Ein besonderer Aspekt ist der PSP-Override-Mechanismus (vgl. Abschnitt~4.6): Manuelle Zuordnungen aus dem \enquote{1. PSP-Zuordnung}-Sheet überschreiben die ursprünglichen PSP-Zuordnungen aus \texttt{qry\_CALM\_Data}, sodass Änderungen über die \gls{api} sofort wirksam werden, ohne dass die Power-Query-Verbindung in Excel aktualisiert werden muss.
 
 \subsubsection{OData-Adapter (konzeptionell)}
 
-Der OData-Adapter würde Daten von SAP \gls{calm} Services abrufen. Dies umfasst die Authentifizierung via OAuth 2.0, den Abruf von User Stories und Zeitbuchungen sowie das Mapping auf das einheitliche Datenmodell.
+Der OData-Adapter ist die perspektivische Alternative zum Excel-Adapter und würde Daten direkt von den OData-Services des SAP \gls{calm} abrufen. Er ist im Rahmen dieser Arbeit nicht implementiert, jedoch so konzipiert, dass er das gleiche DataAdapter-Interface erfüllt und somit den Excel-Adapter ohne Änderungen an der Service-Schicht ersetzen kann.
+
+Anstatt eine lokale Excel-Datei zu parsen, würde der OData-Adapter HTTP-Requests an die \gls{calm}-\gls{api} senden, um User Stories, Zeitbuchungen und Projektstrukturen abzurufen. Die Authentifizierung erfolgt über den OAuth 2.0 Client Credentials Flow, da die Middleware als Server-zu-Server-Anwendung ohne Benutzerinteraktion agiert. Das Mapping der \gls{calm}-Datenstrukturen auf das interne Datenmodell der Middleware übernimmt der Adapter analog zum Excel-Adapter, sodass die Budget-Berechnungslogik identisch bleibt. Der wesentliche Unterschied liegt darin, dass Echtzeitdaten zur Verfügung stünden, da keine manuelle Aktualisierung der Excel-Power-Query mehr erforderlich wäre. Der geschätzte Implementierungsaufwand für diesen Adapter wird in Kapitel~6 evaluiert.
 
 \subsection{Session-Management}
 
