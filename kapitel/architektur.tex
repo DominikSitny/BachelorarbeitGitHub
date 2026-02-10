@@ -128,7 +128,9 @@ Anstatt eine lokale Excel-Datei zu parsen, würde der OData-Adapter HTTP-Request
 
 \subsection{Session-Management}
 
-Die Middleware unterstützt mehrere Projekte. Über ein Session-Management wird sichergestellt, dass alle Requests eines Benutzers auf das gleiche Projekt zugreifen.
+Da die Middleware mehrere Projekte gleichzeitig unterstützt, muss bei jedem Request bekannt sein, auf welches Projekt sich die Anfrage bezieht. HTTP ist grundsätzlich zustandslos -- jeder Request ist unabhängig von vorherigen Requests \citep{fielding2000}. Um dennoch einen projektbezogenen Kontext herzustellen, wurde ein Session-Management entworfen, das den Ablauf in drei Phasen gliedert.
+
+In der ersten Phase fragt der Client die verfügbaren Projekte über \texttt{GET /getProjects()} ab. Die Middleware ermittelt diese dynamisch aus den vorhandenen Projektordnern im Dateisystem, sodass neue Projekte ohne Code-Änderung hinzugefügt werden können. In der zweiten Phase startet der Client eine Session über \texttt{POST /startSession} mit dem gewählten Projektnamen. Die Middleware erzeugt eine eindeutige Session-ID, speichert die Zuordnung von Session zu Projekt im Arbeitsspeicher und gibt die Session-ID an den Client zurück. In der dritten Phase sendet der Client bei allen folgenden Requests die Session-ID im \texttt{x-session-id}-Header mit. Die Middleware validiert die Session, ermittelt das zugehörige Projekt und lädt die entsprechenden Daten. Auflistung~\ref{lst:session-flow} zeigt diesen Ablauf im Überblick.
 
 \begin{lstlisting}[caption={Session-Flow}, label={lst:session-flow}]
 1. GET  /api/budget/getProjects()
@@ -142,9 +144,11 @@ Die Middleware unterstützt mehrere Projekte. Über ein Session-Management wird 
    -> Budget-Daten fuer Projekt_1
 \end{lstlisting}
 
+Requests ohne gültige Session-ID werden mit HTTP 401 abgewiesen -- mit Ausnahme von \texttt{getProjects()} und \texttt{startSession}, die naturgemäß ohne Session funktionieren müssen. Sessions werden nach acht Stunden automatisch invalidiert, um verwaiste Einträge zu vermeiden. Diese Architekturentscheidung wird in Abschnitt~4.8 (DE-02) näher begründet.
+
 \subsection{Datenmodell}
 
-Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} definiert. Es folgt den Prinzipien des Domain-Driven Design \citep{evans2003, vernon2013} und bildet die Domänenkonzepte des Budget-Controllings ab. Abbildung~\ref{fig:er-diagramm} zeigt die Beziehungen zwischen den Entitäten.
+Das Datenmodell orientiert sich an den Strukturen der Excel-Datenquelle und wird deklarativ in \gls{cds} definiert. Es folgt den Prinzipien des Domain-Driven Design \citep{evans2003, vernon2013} und bildet die Domänenkonzepte des Budget-Controllings ab. Abbildung~\ref{fig:er-diagramm} zeigt die Beziehungen zwischen den Entitäten.
 
 \begin{figure}[H]
 \centering
@@ -171,31 +175,37 @@ Das Datenmodell orientiert sich an den Excel-Strukturen und wird in \gls{cds} de
 \label{fig:er-diagramm}
 \end{figure}
 
-\subsubsection{Entitäten}
+Die Entitäten lassen sich in drei Kategorien einteilen. Die erste Kategorie bilden die \textbf{Stammdaten-Entitäten} (\texttt{Teams}, \texttt{Timeboxes}), die aus dem Prüftabellen-Sheet gelesen werden und als Referenzdaten für die übrigen Entitäten dienen. Die zweite Kategorie umfasst die \textbf{fachlichen Entitäten}, die direkt aus den Excel-Sheets gelesen werden: \texttt{PSPElements} enthält die Budgetplanung pro \gls{psp}-Element und Team, \texttt{UserStories} bildet die User Stories aus \texttt{qry\_CALM\_Data} mit ihren Aufwänden und \gls{psp}-Zuordnungen ab, \texttt{TimeBookings} repräsentiert die Zeitbuchungen aus dem CADO-Sheet und \texttt{PSPAssignments} die manuellen Zuordnungen aus dem \enquote{1. PSP-Zuordnung}-Sheet. Die dritte Kategorie bilden die \textbf{berechneten Entitäten} (\texttt{BudgetOverview}, \texttt{BudgetOverviewByPSP}), die nicht direkt aus der Excel-Datei stammen, sondern zur Laufzeit aus den fachlichen Entitäten aggregiert werden. Sie stellen die Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}) pro Team bzw. pro \gls{psp} bereit.
+
+Das zentrale Verbindungselement zwischen den Entitäten ist das \gls{psp}-Element: Es verknüpft User Stories mit ihrem Budget, Zeitbuchungen mit dem zugehörigen Team und manuelle Zuordnungen mit der Budget-Berechnung (vgl. Abbildung~\ref{fig:er-diagramm}). Tabelle~\ref{tab:entities} gibt einen Überblick über alle Entitäten.
 
 \begin{table}[H]
 \centering
 \caption{Übersicht der Entitäten}
 \label{tab:entities}
-\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
+\begin{tabularx}{\textwidth}{ll>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Entität} & \textbf{Beschreibung} \\
+\textbf{Entität} & \textbf{Kategorie} & \textbf{Beschreibung} \\
 \midrule
-Teams & Projekt-Teams aus Prüftabellen \\
-Timeboxes & Phasen (Prepare, Explore, Realize, Deploy, Run) \\
-PSPElements & \gls{psp}-Elemente mit Team und Budget \\
-UserStories & User Stories aus qry\_CALM\_Data \\
-TimeBookings & Zeitbuchungen aus CADO \\
-PSPAssignments & Manuelle \gls{psp}-Zuordnungen \\
-BudgetOverview & Aggregierte Metriken pro Team \\
-BudgetOverviewByPSP & Aggregierte Metriken pro \gls{psp} \\
+Teams & Stammdaten & 23 Projekt-Teams aus dem Prüftabellen-Sheet \\
+Timeboxes & Stammdaten & Projektphasen (Prepare, Explore, Realize, Deploy, Run) \\
+PSPElements & Fachdaten & \gls{psp}-Elemente mit zugeordnetem Team und Budget in PT \\
+UserStories & Fachdaten & User Stories mit Aufwänden, Status und \gls{psp}-Zuordnung \\
+TimeBookings & Fachdaten & Zeitbuchungen aus dem SAP-Export (Stunden pro \gls{psp}) \\
+PSPAssignments & Fachdaten & Manuelle User-Story-zu-\gls{psp}-Zuordnungen (CRUD-fähig) \\
+BudgetOverview & Berechnet & Budget, Actual, \gls{etc} und \gls{eac} aggregiert pro Team \\
+BudgetOverviewByPSP & Berechnet & Budget, Actual, \gls{etc} und \gls{eac} aggregiert pro \gls{psp} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \subsection{PSP-Override-Mechanismus}
 
-Ein besonderes Architekturmerkmal ist der PSP-Override-Mechanismus. Er ermöglicht, dass manuelle \gls{psp}-Zuordnungen sofort wirksam werden, ohne dass die Excel-Power-Query aktualisiert werden muss.
+Ein besonderes Architekturmerkmal ist der PSP-Override-Mechanismus, der das Problem der verzögerten Datenaktualisierung in der Excel-Datenquelle löst. Die User Stories in \texttt{qry\_CALM\_Data} erhalten ihre \gls{psp}-Zuordnung über eine Power-Query-Verbindung in Excel, die manuell aktualisiert werden muss. Wenn ein Benutzer über die \gls{api} eine neue \gls{psp}-Zuordnung erstellt, würde diese Änderung ohne den Override-Mechanismus erst nach einem manuellen Excel-Refresh sichtbar werden -- ein Widerspruch zur Erwartung einer sofort wirksamen \gls{api}-Operation.
+
+Der Mechanismus arbeitet in zwei Phasen. In der Schreibphase wird die neue Zuordnung über \texttt{createPSPAssignment} direkt in das Sheet \enquote{1. PSP-Zuordnung} geschrieben. In der Lesephase -- bei jedem nachfolgenden \gls{api}-Request -- wird eine Lookup-Map aus den manuellen Zuordnungen erstellt, die den Titel der User Story auf das zugewiesene \gls{psp}-Element abbildet. Anschließend werden alle User Stories aus \texttt{qry\_CALM\_Data} durchlaufen: Existiert für eine User Story ein Eintrag in der Lookup-Map, wird ihr \texttt{pspElement}-Feld mit dem manuell zugewiesenen \gls{psp} überschrieben und das Flag \texttt{pspOverride = true} gesetzt, um die Herkunft der Zuordnung nachvollziehbar zu machen.
+
+Die Auswirkung auf die Budget-Berechnung ist unmittelbar: Die \gls{etc}-Berechnung berücksichtigt nur User Stories mit gültiger \gls{psp}-Zuordnung -- Einträge mit \texttt{pspElement = "unassigned"} werden explizit ausgeschlossen. Erhält eine solche User Story durch den Override eine \gls{psp}-Zuordnung, fließt ihr \gls{etc}-Wert in die Aggregation ein, was die Budget-Metriken sowohl pro Team als auch pro \gls{psp}-Element sofort verändert. Auflistung~\ref{lst:psp-override} zeigt den Ablauf im Überblick.
 
 \begin{lstlisting}[caption={PSP-Override Ablauf}, label={lst:psp-override}]
 1. createPSPAssignment("User Story X", "PSP-001")
@@ -207,11 +217,15 @@ Ein besonderes Architekturmerkmal ist der PSP-Override-Mechanismus. Er ermöglic
 4. -> ETC-Berechnung nutzt das neue PSP
 \end{lstlisting}
 
+Architektonisch ist dieser Mechanismus ein Beispiel für das Prinzip der Datenhoheit auf Anwendungsebene: Die Middleware übernimmt die Verantwortung für die Konsistenz der Daten, anstatt sich auf die Aktualisierungsmechanismen der Datenquelle zu verlassen. Bei einem späteren Wechsel auf den OData-Adapter entfällt der Override-Mechanismus, da Änderungen direkt im SAP \gls{calm} persistiert und über die OData-Schnittstelle in Echtzeit bereitgestellt würden.
+
 \subsection{Sequenzdiagramme}
 
 Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der Middleware. Abbildung~\ref{fig:seq-session} zeigt den Session-Start, Abbildung~\ref{fig:seq-assignment} die Erstellung einer PSP-Zuordnung.
 
 \subsubsection{Session-Start und Datenabruf}
+
+Abbildung~\ref{fig:seq-session} zeigt den typischen Ablauf einer Budget-Abfrage. Der Client startet zunächst eine Session, wobei die API-Schicht den Request an die Service-Schicht weiterleitet, die eine Session-ID erzeugt und zurückgibt. Beim anschließenden Datenabruf validiert die Service-Schicht die Session, delegiert das Laden der Rohdaten an die Adapter-Schicht und führt die Budget-Berechnung (\texttt{calculateMetrics}) innerhalb der Service-Schicht durch, bevor das Ergebnis als JSON zurückgegeben wird. Die Berechnung erfolgt bei jedem Request neu, da die Middleware keinen Cache verwendet (vgl. DE-01).
 
 \begin{figure}[H]
 \centering
@@ -251,6 +265,8 @@ Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der 
 \end{figure}
 
 \subsubsection{PSP-Zuordnung erstellen}
+
+Abbildung~\ref{fig:seq-assignment} zeigt den Ablauf beim Erstellen einer \gls{psp}-Zuordnung. Nach der Session-Validierung prüft die Service-Schicht die Eingabeparameter und erkennt potenzielle Team-Mismatches, bevor die Adapter-Schicht den Schreibvorgang in die Excel-Datei ausführt. Die Response enthält neben dem Erfolgsstatus auch eventuelle Warnungen, sodass der Client auf Team-Mismatches hinweisen kann.
 
 \begin{figure}[H]
 \centering
@@ -321,7 +337,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
 
 \subsection{Fehlerbehandlung}
 
-Die Middleware implementiert eine einheitliche Fehlerbehandlung für alle API-Endpunkte:
+Die Middleware implementiert eine einheitliche Fehlerbehandlung, die sich an den HTTP-Statuscodes orientiert und das von SAP \gls{cap} vorgegebene OData-Fehlerformat nutzt. Anstatt Fehler als reguläre Responses mit \texttt{success: false} zurückzugeben, werden sie über die \gls{cap}-eigene Methode \texttt{req.error()} signalisiert. Das Framework transformiert diese automatisch in OData-konforme Fehler-Responses mit dem korrekten HTTP-Statuscode, sodass Clients die Fehler einheitlich auswerten können. Tabelle~\ref{tab:error-handling} zeigt die verwendeten Statuscodes und ihre Szenarien.
 
 \begin{table}[H]
 \centering
@@ -341,7 +357,7 @@ Die Middleware implementiert eine einheitliche Fehlerbehandlung für alle API-En
 \end{tabularx}
 \end{table}
 
-Fehler werden als JSON-Objekt mit \texttt{error}-Feld zurückgegeben:
+Die Fehlerbehandlung folgt dem Prinzip, Fehler so früh wie möglich zu erkennen: Die Session-Validierung wird vor der eigentlichen Geschäftslogik ausgeführt, sodass ungültige Requests keine unnötigen Datenzugriffe auslösen. Fehler werden als JSON-Objekt mit \texttt{error}-Feld zurückgegeben (Auflistung~\ref{lst:error-response}):
 
 \begin{lstlisting}[caption={Fehler-Response Format}, label={lst:error-response}]
 {
