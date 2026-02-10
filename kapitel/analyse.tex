@@ -6,7 +6,7 @@ In diesem Kapitel wird die bestehende Situation im Budget-Controlling analysiert
 
 \subsubsection{Excel-basierter Workflow}
 
-Der aktuelle Workflow basiert auf einer zentralen Excel-Datei (\texttt{Budgetcontrolling.xlsx}), welche über SharePoint geteilt wird. Die Datei integriert Daten aus verschiedenen Quellen mittels Power Query.
+Der aktuelle Workflow im Budget-Controlling basiert auf einer zentralen Excel-Datei (\texttt{Budgetcontrolling.xlsx}), die über SharePoint mit allen Beteiligten geteilt wird. Die Datei aggregiert Daten aus mehreren Quellen mittels Power Query: User Stories und ihre Aufwände werden automatisch aus SAP \gls{calm} abgerufen, Zeitbuchungen stammen aus einem SAP-Listenexport (CADO), und die Budget-Planung pro \gls{psp}-Element wird manuell gepflegt. Der Projektleiter öffnet die Datei, aktualisiert die Power-Query-Verbindungen und liest die daraus berechneten Kennzahlen ab. Manuelle \gls{psp}-Zuordnungen, die nicht in \gls{calm} hinterlegt sind, werden direkt in der Datei eingetragen. Tabelle~\ref{tab:excel-sheets} zeigt die einzelnen Sheets und ihre Datenquellen.
 
 \begin{table}[H]
 \centering
@@ -50,11 +50,21 @@ Zur Veranschaulichung ein Beispiel: Für ein Team mit einem geplanten Budget von
 
 \subsubsection{Problemanalyse}
 
-Die Analyse des bestehenden Workflows offenbart mehrere Probleme. Zunächst stehen keine Echtzeitdaten zur Verfügung, da Power Query nur bei manuellem Refresh aktualisiert wird. Darüber hinaus existiert keine API, über die andere Systeme auf die Daten zugreifen könnten. \gls{psp}-Zuordnungen müssen manuell in Excel gepflegt werden, wobei keine automatische Prüfung auf Konsistenz stattfindet. Schließlich werden Änderungen nicht nachvollziehbar protokolliert, sodass eine Historisierung fehlt.
+Die Analyse des bestehenden Workflows offenbart vier zentrale Probleme.
+
+Das erste Problem betrifft die \textbf{fehlende Echtzeitfähigkeit}. Die Power-Query-Verbindungen in Excel werden nur bei manuellem Refresh aktualisiert. Zwischen zwei Aktualisierungen können Stunden oder Tage vergehen, in denen Entscheidungen auf veralteten Daten basieren. Insbesondere bei der ETC-Berechnung, die sich auf die Restaufwände der User Stories stützt, führt dies zu ungenauen Prognosen.
+
+Das zweite Problem ist die \textbf{fehlende Programmierschnittstelle}. Die Budget-Daten sind ausschließlich innerhalb der Excel-Datei verfügbar. Es existiert keine \gls{api}, über die ein Frontend, ein Dashboard oder andere Systeme programmatisch auf die Kennzahlen zugreifen könnten. Jede Auswertung erfordert das manuelle Öffnen und Lesen der Datei.
+
+Das dritte Problem betrifft die \textbf{fehlende Konsistenzprüfung}. \gls{psp}-Zuordnungen werden manuell in Excel eingetragen, ohne dass eine automatische Validierung stattfindet. So können User Stories einem \gls{psp}-Element zugeordnet werden, dessen Team nicht mit dem Team der User Story übereinstimmt (\textit{Team-Mismatch}), was zu fehlerhaften Budget-Aggregationen führt.
+
+Das vierte Problem ist die \textbf{mangelnde Nachvollziehbarkeit}. Änderungen an den \gls{psp}-Zuordnungen werden nicht protokolliert. Es ist nicht ersichtlich, wer wann welche Zuordnung erstellt oder geändert hat. Dies erschwert die Fehlersuche und die Kontrolle der Datenqualität.
 
 \subsection{Soll-Konzept}
 
-Die Middleware soll die beschriebenen Probleme lösen und gleichzeitig einen einfachen Übergang zu einer service-orientierten Architektur ermöglichen. Middleware bezeichnet dabei Software, die als Vermittlungsschicht zwischen verteilten Anwendungen fungiert und deren Kommunikation vereinfacht \citep{bernstein1996, tanenbaum2017}. Das Konzept folgt dem Prinzip der \enquote{Strangler Fig Application}, bei dem eine neue Architektur schrittweise die alte ersetzt \citep{newman2021}.
+Die Middleware soll die beschriebenen Probleme lösen und gleichzeitig einen einfachen Übergang zu einer service-orientierten Architektur ermöglichen. Middleware bezeichnet dabei Software, die als Vermittlungsschicht zwischen verteilten Anwendungen fungiert und deren Kommunikation vereinfacht \citep{bernstein1996, tanenbaum2017}.
+
+Das Konzept folgt dem Prinzip der \enquote{Strangler Fig Application} \citep{newman2021}: Anstatt das bestehende Excel-basierte System vollständig abzulösen, wird zunächst eine Middleware eingeführt, die die Excel-Daten über eine standardisierte \gls{api} bereitstellt. Das Frontend kommuniziert ausschließlich mit der Middleware und hat keine Kenntnis über die zugrundeliegende Datenquelle. In einem späteren Schritt kann die Excel-Datenquelle durch OData-Services von SAP \gls{calm} ersetzt werden, ohne dass das Frontend angepasst werden muss. Die Middleware übernimmt somit die Rolle des \enquote{Stranglers}, der das alte System schrittweise durch eine neue Architektur ersetzt.
 
 \begin{figure}[H]
 \centering
@@ -81,7 +91,7 @@ Die Middleware soll die beschriebenen Probleme lösen und gleichzeitig einen ein
 \label{fig:soll-architektur}
 \end{figure}
 
-Abbildung~\ref{fig:soll-architektur} zeigt die Zielarchitektur. Die zentrale Idee besteht in der Entkopplung des Frontends von der konkreten Datenquelle. Das Frontend kommuniziert ausschließlich mit der Middleware über eine standardisierte \gls{odata}-Schnittstelle. Die Middleware abstrahiert die Komplexität des Datenzugriffs und ermöglicht einen transparenten Wechsel zwischen Excel- und Service-Backend.
+Abbildung~\ref{fig:soll-architektur} zeigt die resultierende Zielarchitektur. Die Middleware nimmt Daten von beiden möglichen Backends entgegen und stellt sie dem Frontend über eine einheitliche \gls{odata} v4-Schnittstelle zur Verfügung.
 
 \subsection{Verwandte Arbeiten}
 
@@ -101,7 +111,7 @@ Im Unterschied zu bestehenden Arbeiten, die sich primär auf die Fehleranalyse v
 
 \subsection{Stakeholder-Analyse}
 
-Für den erfolgreichen Entwurf der Middleware ist das Verständnis der beteiligten Stakeholder und ihrer Anforderungen essentiell \citep{sommerville2015}.
+Für den erfolgreichen Entwurf der Middleware ist das Verständnis der beteiligten Stakeholder und ihrer Anforderungen essentiell \citep{sommerville2015}. Tabelle~\ref{tab:stakeholder} zeigt die identifizierten Stakeholder-Gruppen. Dabei sind teilweise gegenläufige Interessen erkennbar: Während Projektleiter und Controller vor allem an korrekten Daten und einfacher Bedienung interessiert sind, legen die Frontend-Entwickler Wert auf eine stabile, dokumentierte \gls{api}. Die IT-Architekten wiederum priorisieren die langfristige Austauschbarkeit des Backends. Die Middleware muss diese unterschiedlichen Perspektiven berücksichtigen und insbesondere sicherstellen, dass die \gls{api}-Stabilität nicht durch spätere Backend-Wechsel beeinträchtigt wird.
 
 \begin{table}[H]
 \centering
@@ -200,6 +210,8 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit der Middle
 
 \subsubsection{Funktionale Anforderungen}
 
+Die funktionalen Anforderungen leiten sich direkt aus den Use Cases und der Problemanalyse ab. Sie beschreiben, \textit{was} das System leisten muss. Die Budget-Metriken (FA-01, FA-02) adressieren die Kernfunktionalität der Middleware. Die \gls{psp}-Zuordnungen (FA-03, FA-07) lösen das Problem der fehlenden Konsistenzprüfung, indem sie eine kontrollierte Schnittstelle für Änderungen bereitstellen. Das Session-Management (FA-04) ermöglicht die gleichzeitige Unterstützung mehrerer Projekte. Tabelle~\ref{tab:fa} gibt einen Überblick.
+
 \begin{table}[H]
 \centering
 \caption{Funktionale Anforderungen}
@@ -221,6 +233,8 @@ FA-07 & Das System muss Änderungen zurück in Excel schreiben können \\
 
 \subsubsection{Nicht-funktionale Anforderungen}
 
+Die nicht-funktionalen Anforderungen definieren Qualitätsmerkmale des Systems. Die zentrale Anforderung NFA-01 (Backend-Austauschbarkeit) spiegelt die Forschungsfrage dieser Arbeit wider und beeinflusst maßgeblich die Architekturentscheidungen in Kapitel~4. Die OData-Kompatibilität (NFA-02) und Fiori-Eignung (NFA-04) werden durch den Einsatz von SAP \gls{cap} sichergestellt. Der Verzicht auf eine lokale Datenbank (NFA-05) folgt aus der Designentscheidung, Excel als \textit{Single Source of Truth} beizubehalten.
+
 \begin{table}[H]
 \centering
 \caption{Nicht-funktionale Anforderungen}
@@ -240,7 +254,7 @@ NFA-05 & Das System muss ohne lokale Datenbankinstanz funktionieren \\
 
 \subsection{Priorisierung der Anforderungen}
 
-Die Anforderungen werden nach der MoSCoW-Methode priorisiert \citep{sommerville2015}:
+Die Anforderungen werden nach der MoSCoW-Methode priorisiert \citep{sommerville2015}. Die Einstufung orientiert sich daran, ob die Middleware ohne die jeweilige Anforderung ihren Kernzweck erfüllen kann. Budget-Metriken (FA-01, FA-02) und der Datenzugriff auf Excel (FA-06) bilden zusammen mit der OData-Kompatibilität (NFA-02) die \textit{Must}-Kategorie, da ohne sie kein funktionsfähiges System entsteht. Die \textit{Should}-Anforderungen (CRUD, Session-Management, Austauschbarkeit) erweitern die Funktionalität erheblich, sind jedoch für einen ersten Prototyp nicht zwingend erforderlich. Die \textit{Could}-Anforderungen (Warnungen, Write-Back) stellen Zusatzfunktionen dar, die den Nutzen steigern, aber auch später ergänzt werden können.
 
 \begin{table}[H]
 \centering
