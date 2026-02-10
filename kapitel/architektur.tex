@@ -40,17 +40,29 @@ Die oberste Schicht bildet die Präsentationsschicht mit dem Fiori Frontend, das
 
 \subsection{Schichtenmodell}
 
+Im Folgenden werden die einzelnen Schichten der Architektur (vgl. Abbildung~\ref{fig:architektur}) detailliert beschrieben.
+
+\subsubsection{Präsentationsschicht}
+
+Die Präsentationsschicht umfasst das SAP Fiori Frontend, das von anderen Studierenden im Rahmen separater Arbeiten entwickelt wird. Sie ist bewusst nicht Bestandteil dieser Arbeit, stellt jedoch eine zentrale Randbedingung dar: Die Middleware muss eine \gls{odata} v4-konforme \gls{api} bereitstellen, da SAP Fiori diese als Standard für die Datenkommunikation voraussetzt \citep{sap2024cap}. Sämtliche Entwurfsentscheidungen der darunterliegenden Schichten orientieren sich an dieser Anforderung.
+
 \subsubsection{API-Schicht}
 
-Die API-Schicht wird mit SAP \gls{cap} implementiert und stellt eine \gls{odata} v4-konforme Schnittstelle bereit. Die Service-Definition erfolgt deklarativ in \gls{cds}.
+Die API-Schicht wird mit SAP \gls{cap} implementiert und stellt eine \gls{odata} v4-konforme Schnittstelle bereit. Die Service-Definition erfolgt deklarativ in \gls{cds}, wobei die Annotation \texttt{@cds.persistence.skip} eine zentrale Rolle spielt: Sie kennzeichnet Entitäten, die nicht in einer Datenbank persistiert werden, sondern zur Laufzeit aus anderen Quellen generiert werden. Dadurch übernimmt \gls{cap} automatisch die Bereitstellung von OData-Funktionalitäten wie Filterung (\texttt{\$filter}), Paginierung (\texttt{\$top}/\texttt{\$skip}) und Sortierung (\texttt{\$orderby}), ohne dass diese manuell implementiert werden müssen. Die API exponiert insgesamt acht lesbare Entitäten (darunter \texttt{BudgetOverview} und \texttt{UserStories}), zwei Funktionen (\texttt{getProjects}, \texttt{getSessionInfo}) sowie vier Actions für Session-Management und \gls{psp}-Zuordnungen.
 
 \subsubsection{Service-Schicht}
 
-Die Service-Schicht kapselt die Geschäftslogik. Dazu gehören die Berechnung der Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}), die Aggregation pro Team und pro \gls{psp}, die Validierung von \gls{psp}-Zuordnungen sowie die Generierung von Warnungen bei Team-Mismatches.
+Die Service-Schicht bildet den Kern der Middleware und kapselt die gesamte Geschäftslogik. Sie ist in SAP \gls{cap} als \texttt{ApplicationService} implementiert und folgt dem ereignisgesteuerten Handler-Modell des Frameworks: Für jede Entität wird ein \texttt{on('READ')}-Handler registriert, der die Daten zur Laufzeit aus der Adapter-Schicht lädt und aufbereitet.
+
+Die Schicht gliedert sich intern in drei Verantwortungsbereiche. Der erste Bereich umfasst die Budget-Berechnung, die in ein eigenständiges Modul (\texttt{budget-calculations.js}) ausgelagert wurde. Dieses Modul aggregiert die vier Metriken Budget, Actual, \gls{etc} und \gls{eac} sowohl pro Team als auch pro \gls{psp}-Element und ist bewusst frei von Abhängigkeiten zur Datenquelle gehalten, was eine isolierte Testbarkeit ermöglicht. Der zweite Bereich ist das Session-Management, das sicherstellt, dass jeder Client über einen \texttt{x-session-id}-Header einem Projekt zugeordnet wird. Sessions werden im Arbeitsspeicher gehalten und nach acht Stunden automatisch invalidiert. Der dritte Bereich umfasst die Validierungslogik, insbesondere die Prüfung auf Team-Mismatches bei \gls{psp}-Zuordnungen, bei denen das Team der User Story vom Team des \gls{psp}-Elements abweicht.
 
 \subsubsection{Adapter-Schicht}
 
-Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen. Sie implementiert das Adapter-Pattern und ermöglicht den Austausch des Backends, ohne dass Änderungen an der Service-Schicht erforderlich sind.
+Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen und stellt der Service-Schicht ein einheitliches Datenmodell zur Verfügung -- unabhängig davon, ob die Daten aus einer Excel-Datei oder einem OData-Service stammen. Die Service-Schicht ruft ausschließlich Methoden der Adapter-Schnittstelle auf (etwa \texttt{loadTeams()}, \texttt{loadUserStories()} oder \texttt{savePSPAssignment()}) und hat keine Kenntnis über die konkrete Datenquelle. Dieses Prinzip der Umkehrung der Abhängigkeit (\textit{Dependency Inversion}) ist ein Kernelement austauschbarer Architekturen \citep{gamma1994}. Die Adapter-Schicht wird in Abschnitt~4.3 im Detail beschrieben.
+
+\subsubsection{Datenschicht}
+
+Die Datenschicht bezeichnet die externen Datenquellen selbst. Im aktuellen Zustand ist dies eine \texttt{Budgetcontrolling.xlsx} auf dem lokalen Dateisystem (bzw. perspektivisch auf SharePoint), die über Power Query mit Daten aus SAP \gls{calm} befüllt wird. Bei einem späteren Backend-Wechsel würde diese Schicht durch die OData-Services von SAP \gls{calm} ersetzt, ohne dass die darüberliegenden Schichten angepasst werden müssen.
 
 \subsection{Adapter-Pattern für Backend-Austauschbarkeit}
 
