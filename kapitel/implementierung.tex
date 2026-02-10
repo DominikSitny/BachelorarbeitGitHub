@@ -4,7 +4,7 @@ In diesem Kapitel wird die Implementierung der BC Middleware auf der SAP \gls{bt
 
 \subsection{Projektstruktur}
 
-Die Middleware folgt der Standard-Projektstruktur des SAP \gls{cap}, wie in Auflistung~\ref{lst:project-structure} dargestellt:
+Die Middleware folgt der Standard-Projektstruktur des SAP \gls{cap} \citep{sap2024cap}, die eine klare Trennung zwischen Service-Definition, Geschäftslogik und Testinfrastruktur vorsieht. Das Verzeichnis \texttt{srv/} enthält die gesamte Server-Logik, wobei die Bibliotheken in \texttt{srv/lib/} als eigenständige Module organisiert sind, um die in Kapitel~4 beschriebene Schichtentrennung auch auf Dateiebene abzubilden. Die Testdaten in \texttt{excel\_templates/} simulieren die SharePoint-Verzeichnisstruktur, sodass neue Projekte durch einfaches Hinzufügen eines Ordners verfügbar werden. Auflistung~\ref{lst:project-structure} zeigt die Struktur im Detail:
 
 \begin{lstlisting}[caption={Projektstruktur}, label={lst:project-structure}]
 bc_middleware/
@@ -29,7 +29,7 @@ bc_middleware/
 
 \subsection{CDS Service-Definition}
 
-Die Service-Definition in \gls{cds} beschreibt alle Entitäten, Funktionen und Actions der \gls{api}.
+Die Service-Definition in \gls{cds} bildet die zentrale Schnittstellenbeschreibung der Middleware. Aus ihr generiert SAP \gls{cap} automatisch einen vollständigen OData v4 Service mit Metadaten-Dokument, Filterung, Paginierung und Sortierung \citep{sap2024cap}. Auflistung~\ref{lst:cds-service} zeigt einen Auszug mit zwei exemplarischen Entitäten, einer Funktion und einer Action.
 
 \begin{lstlisting}[caption={Auszug aus budget-service.cds}, label={lst:cds-service}]
 service BudgetService @(path: '/api/budget') {
@@ -145,7 +145,7 @@ function addPSPAssignment(filePath, assignment) {
 
 \subsection{Budget-Metriken Berechnung}
 
-Die Budget-Metriken werden zur Laufzeit aus den geladenen Daten berechnet.
+Die Budget-Metriken werden zur Laufzeit aus den geladenen Daten berechnet. Die Berechnungslogik ist in ein eigenständiges Modul (\texttt{budget-calculations.js}) ausgelagert, das keine Abhängigkeit zur Datenquelle besitzt -- es arbeitet ausschließlich auf den vom Adapter bereitgestellten Datenstrukturen. Dadurch kann das Modul isoliert getestet werden und erreicht eine Testabdeckung von 100\,\%. Die vier Metriken Budget, Actual, \gls{etc} und \gls{eac} werden jeweils in zwei Aggregationsebenen berechnet: pro Team und pro \gls{psp}-Element.
 
 \subsubsection{Budget pro Team}
 
@@ -187,7 +187,7 @@ function calculateEtcByTeam(userStories) {
 
 \subsection{Session-Management}
 
-Sessions werden im Arbeitsspeicher des Servers verwaltet:
+Die Implementierung des in Abschnitt~4.4 entworfenen Session-Managements nutzt eine JavaScript \texttt{Map} als In-Memory-Speicher. Die Session-ID wird aus einer Kombination von Zufallswert und Zeitstempel generiert, was Eindeutigkeit ohne externe Abhängigkeiten sicherstellt. Die Zuordnung von Session zu Projekt wird bei jedem Request über den \texttt{x-session-id}-Header aufgelöst. Auflistung~\ref{lst:session-mgmt} zeigt die Kernfunktionen:
 
 \begin{lstlisting}[caption={Session-Verwaltung}, label={lst:session-mgmt}]
 const sessions = new Map();
@@ -210,7 +210,7 @@ function getSession(sessionId) {
 
 \subsection{Deployment}
 
-Die Middleware wird auf SAP \gls{btp} Cloud Foundry deployed:
+Die Middleware wird auf SAP \gls{btp} Cloud Foundry deployed. Die Deployment-Konfiguration erfolgt über eine \texttt{manifest.yaml}, die den Applikationsnamen, die zugewiesene Speichergröße, das Buildpack und die Route definiert (Auflistung~\ref{lst:manifest}). Mit 256\,MB Arbeitsspeicher ist die Instanz für die erwartete Nutzerzahl ausreichend dimensioniert. Das \texttt{nodejs\_buildpack} stellt die Node.js-Laufzeitumgebung bereit, in der SAP \gls{cap} den OData-Service startet.
 
 \begin{lstlisting}[caption={manifest.yaml}, label={lst:manifest}]
 applications:
@@ -223,7 +223,7 @@ applications:
       - route: xxx-srv.cfapps.eu10.hana.ondemand.com
 \end{lstlisting}
 
-Das Deployment erfolgt mit dem Cloud Foundry CLI:
+Das Deployment selbst erfolgt mit dem Cloud Foundry CLI in zwei Schritten -- Authentifizierung und Push:
 
 \begin{lstlisting}[caption={Deployment-Befehle}, label={lst:deploy}]
 cf login -a https://api.cf.eu10.hana.ondemand.com
@@ -313,7 +313,7 @@ function requireSession(req) {
 
 \subsection{API-Dokumentation}
 
-Für die Frontend-Entwickler wurde eine interaktive API-Dokumentation erstellt, welche unter der Root-URL der Middleware erreichbar ist. Diese umfasst eine Übersicht aller Endpunkte mit Beschreibung, Request/Response-Beispiele für jeden Endpunkt, eine Erklärung der Session-Authentifizierung sowie OData Query-Optionen mit Beispielen.
+Da das Fiori-Frontend von anderen Studierenden entwickelt wird (vgl. Abschnitt~\ref{sec:abgrenzung}), ist eine vollständige und aktuelle API-Dokumentation essentiell für die Zusammenarbeit. Anstatt eine separate Dokumentation zu pflegen, die schnell veraltet, wurde eine interaktive HTML-Seite (\texttt{index.html}) direkt im \texttt{srv/}-Verzeichnis erstellt, die unter der Root-URL der Middleware erreichbar ist. Diese Dokumentation umfasst eine Übersicht aller Endpunkte mit Beschreibung, Request/Response-Beispiele für jeden Endpunkt, eine Erklärung der Session-Authentifizierung sowie OData Query-Optionen mit Beispielen. Da die Dokumentation im selben Repository wie der Code liegt, wird sie bei jedem Deployment automatisch mit aktualisiert.
 
 \begin{figure}[H]
 \centering

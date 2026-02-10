@@ -4,9 +4,13 @@ In diesem Kapitel wird die entwickelte Middleware evaluiert und die beiden Backe
 
 \subsection{Vergleichskriterien}
 
-Für den Vergleich der Backend-Ansätze werden sechs Kriterien herangezogen: der Implementierungsaufwand für die initiale Entwicklung, die Wartbarkeit im Sinne des Aufwands für Änderungen und Fehlerbehebung, die Erweiterbarkeit bezüglich neuer Features, die Performance hinsichtlich Antwortzeiten und Durchsatz, die Datenkonsistenz als Maß für die Zuverlässigkeit der Daten sowie die Austauschbarkeit, also der Aufwand für den Backend-Wechsel.
+Für den Vergleich der Backend-Ansätze werden sechs Kriterien herangezogen, die sich an den Qualitätsmerkmalen des ISO/IEC 25010 Standards orientieren \citep{bass2021}. Die Kriterien decken sowohl technische als auch organisatorische Aspekte ab:
+
+Der \textbf{Implementierungsaufwand} bemisst den Aufwand für die initiale Entwicklung des jeweiligen Adapters. Die \textbf{Wartbarkeit} bewertet, wie aufwändig Änderungen und Fehlerbehebungen im laufenden Betrieb sind. Die \textbf{Erweiterbarkeit} beschreibt, wie einfach neue Funktionen (z.\,B. weitere Entitäten oder Metriken) hinzugefügt werden können. Die \textbf{Performance} bezieht sich auf Antwortzeiten und Durchsatz unter realistischen Bedingungen. Die \textbf{Datenkonsistenz} bewertet die Zuverlässigkeit und Aktualität der bereitgestellten Daten. Die \textbf{Austauschbarkeit} misst den Aufwand für einen vollständigen Backend-Wechsel -- das zentrale Kriterium im Kontext der Forschungsfrage.
 
 \subsection{Vergleich: Excel-Backend vs. OData-Services}
+
+Tabelle~\ref{tab:vergleich} stellt die beiden Backend-Ansätze gegenüber. Der Vergleich zeigt, dass die Ansätze komplementäre Stärken aufweisen: Das Excel-Backend punktet mit geringem Setup-Aufwand, Offline-Fähigkeit und einer niedrigen Lernkurve für Endnutzer, die bereits mit Excel vertraut sind. Das OData-Backend bietet hingegen Echtzeitdaten, Transaktionssicherheit und bessere Skalierbarkeit. Die Middleware-Architektur ermöglicht es, zunächst die Vorteile des Excel-Backends zu nutzen und später bei Bedarf auf OData-Services zu migrieren, ohne das Frontend anzupassen.
 
 \begin{table}[H]
 \centering
@@ -33,7 +37,11 @@ Lernkurve Endnutzer & Gering -- Excel bekannt & Höher -- neue Oberfläche \\
 
 \subsection{Bewertung der Anforderungserfüllung}
 
+Die in Kapitel~3 definierten Anforderungen werden im Folgenden gegen den Implementierungsstand geprüft. Dabei wird zwischen vollständiger Erfüllung, teilweiser Erfüllung und Nichterfüllung unterschieden.
+
 \subsubsection{Funktionale Anforderungen}
+
+Tabelle~\ref{tab:fa-erfuellung} zeigt, dass sechs von sieben funktionalen Anforderungen vollständig erfüllt sind. Die einzige Einschränkung betrifft FA-06 (SharePoint-Anbindung): Der Excel-Parser kann Dateien lokal lesen und verarbeiten, jedoch fehlen zum Zeitpunkt der Abgabe die SharePoint-Berechtigungen für den produktiven Zugriff über Microsoft Graph. Die technische Implementierung (OAuth-Flow, Datei-Download) ist vorbereitet, konnte aber nicht mit dem Produktiv-SharePoint getestet werden.
 
 \begin{table}[H]
 \centering
@@ -58,6 +66,8 @@ FA-07 & Änderungen in Excel schreiben & Erfüllt \\
 
 \subsubsection{Nicht-funktionale Anforderungen}
 
+Alle nicht-funktionalen Anforderungen sind vollständig erfüllt (Tabelle~\ref{tab:nfa-erfuellung}). Besonders hervorzuheben ist NFA-01 (Backend-Austauschbarkeit): Die Adapter-Architektur ermöglicht nachweislich den Wechsel des Backends, ohne dass die Service-Schicht, die CDS-Definitionen oder das Frontend angepasst werden müssen. Die OData-Kompatibilität (NFA-02) wird durch SAP \gls{cap} automatisch sichergestellt, was auch die Fiori-Eignung (NFA-04) impliziert.
+
 \begin{table}[H]
 \centering
 \caption{Erfüllung der nicht-funktionalen Anforderungen}
@@ -77,15 +87,15 @@ NFA-05 & Ohne lokale Datenbank & Erfüllt \\
 
 \subsection{Bewertung der Austauschbarkeit}
 
-Die zentrale Forschungsfrage zielt auf die Austauschbarkeit des Backends ab. Die Evaluation zeigt:
+Die zentrale Forschungsfrage zielt auf die Austauschbarkeit des Backends ab. Um diese zu bewerten, wird analysiert, welche Komponenten bei einem Backend-Wechsel unverändert bleiben, welche angepasst werden müssen und welcher Aufwand dafür anfällt.
 
 \subsubsection{Durch das Adapter-Pattern geschützte Komponenten}
 
-Durch das Adapter-Pattern bleiben zentrale Komponenten bei einem Backend-Wechsel unverändert: die \gls{cds} Service-Definition, die Budget-Berechnungslogik, das Session-Management sowie die \gls{api}-Dokumentation erfordern keine Anpassungen.
+Durch das Adapter-Pattern bleiben zentrale Komponenten bei einem Backend-Wechsel unverändert. Die \gls{cds} Service-Definition (\texttt{budget-service.cds}) definiert die \gls{api}-Schnittstelle unabhängig von der Datenquelle und erfordert keine Anpassungen. Die Budget-Berechnungslogik (\texttt{budget-calculations.js}) arbeitet ausschließlich auf den abstrakten Datenstrukturen des Adapters -- sie hat keine Kenntnis davon, ob die Daten aus Excel oder einem OData-Service stammen. Ebenso bleiben das Session-Management, die Fehlerbehandlung, die \gls{api}-Dokumentation sowie sämtliche 113 automatisierten Tests für die Service-Schicht unverändert. Insgesamt sind damit über 80\,\% der Codebasis vom Backend-Wechsel nicht betroffen.
 
 \subsubsection{Bei Backend-Wechsel zu ändernde Komponenten}
 
-Bei einem Backend-Wechsel müssen hingegen ein neuer OData-Adapter analog zum bestehenden Excel-Adapter implementiert, die Service-Endpunkte konfiguriert und die Authentifizierung auf OAuth 2.0 für \gls{calm} angepasst werden.
+Bei einem Backend-Wechsel muss ein neuer OData-Adapter implementiert werden, der das gleiche DataAdapter-Interface erfüllt wie der bestehende Excel-Adapter. Dieser Adapter würde HTTP-Requests an die \gls{calm}-\gls{api} senden, die Antworten auf das interne Datenmodell mappen und die Authentifizierung über OAuth 2.0 Client Credentials abwickeln. Zusätzlich muss die \texttt{loadData()}-Funktion in der Service-Schicht so konfiguriert werden, dass sie den neuen Adapter anstelle des Excel-Adapters aufruft. Der Write-Back für \gls{psp}-Zuordnungen müsste ebenfalls auf die \gls{calm}-\gls{api} umgestellt werden, wobei der PSP-Override-Mechanismus entfallen kann, da Änderungen direkt im Backend persistiert würden.
 
 \subsubsection{Geschätzter Aufwand für Backend-Wechsel}
 
@@ -136,9 +146,11 @@ POST /startSession & -- & 45 ms & 80 ms \\
 
 \subsection{Testszenarien}
 
-Die Middleware wurde anhand definierter Testszenarien validiert:
+Neben den 113 automatisierten Tests (vgl. Abschnitt~5.10) wurde die Middleware anhand manuell definierter Testszenarien validiert, die das Zusammenspiel aller Komponenten auf der deployed Instanz prüfen. Die Szenarien decken sowohl den Normalfall als auch Grenzfälle und Fehlerszenarien ab.
 
 \subsubsection{Funktionale Tests}
+
+Tabelle~\ref{tab:functional-tests} zeigt die zehn funktionalen Testszenarien, die alle relevanten Use Cases abdecken. Jedes Szenario wurde auf der deployed BTP-Instanz mit realen Testdaten durchgeführt.
 
 \begin{table}[H]
 \centering
@@ -163,6 +175,8 @@ T-10 & Projekt wechseln & Neue Session für anderes Projekt & \checkmark \\
 \end{table}
 
 \subsubsection{Grenzwert-Tests}
+
+Die Grenzwert-Tests (Tabelle~\ref{tab:boundary-tests}) prüfen das Verhalten der Middleware bei ungewöhnlichen oder fehlerhaften Eingaben. Sie stellen sicher, dass die in Abschnitt~4.9 definierte Fehlerbehandlung korrekt greift und die Middleware auch bei Randfällen konsistente Antworten liefert.
 
 \begin{table}[H]
 \centering
