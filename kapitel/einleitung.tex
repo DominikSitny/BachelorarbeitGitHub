@@ -1,30 +1,30 @@
 \section{Einleitung}
 
-Die digitale Transformation von Geschäftsprozessen stellt Unternehmen vor die Herausforderung, bestehende Arbeitsweisen mit modernen Technologien zu verbinden \citep{westerman2014}. Insbesondere im Bereich des Projektcontrollings existieren häufig gewachsene Strukturen, die auf Microsoft Excel und SharePoint basieren. Studien zeigen, dass Tabellenkalkulationen in Unternehmen weit verbreitet sind und oft geschäftskritische Funktionen übernehmen, gleichzeitig aber erhebliche Fehlerrisiken bergen \citep{panko2016, powell2009}. Die vorliegende Arbeit untersucht, wie eine Middleware-Architektur gestaltet werden kann, die sowohl bestehende Excel-basierte Workflows unterstützt als auch einen schrittweisen Übergang zu service-orientierten Architekturen ermöglicht.
+Die digitale Transformation von Geschäftsprozessen stellt Unternehmen vor die Herausforderung, bestehende Arbeitsweisen mit modernen Technologien zu verbinden \citep{westerman2014}. Insbesondere im Bereich des Projektcontrollings existieren in vielen Organisationen gewachsene Strukturen, die auf Microsoft Excel und SharePoint basieren. Studien zeigen, dass Tabellenkalkulationen in Unternehmen weit verbreitet sind und häufig geschäftskritische Funktionen übernehmen, gleichzeitig aber erhebliche Fehlerrisiken bergen \citep{panko2016, powell2009}. Gleichzeitig bieten Cloud-Plattformen wie die SAP \gls{btp} die Möglichkeit, solche heterogenen Datenquellen über eine zentrale Middleware zu abstrahieren und dem Frontend über eine einheitliche Schnittstelle bereitzustellen. Die vorliegende Arbeit untersucht, wie eine solche Cloud-Middleware konzipiert und implementiert werden kann.
 
 \subsection{Motivation und Problemstellung}
 
-Im Rahmen von SAP S/4HANA-Projekten ist das Budget-Controlling ein zentraler Bestandteil der Projektsteuerung. In vielen Unternehmen erfolgt die Budgetplanung und -überwachung noch immer auf Basis von Excel-Dateien, die manuell gepflegt und über SharePoint geteilt werden.
+Die vorliegende Arbeit entstand im Rahmen eines realen SAP S/4HANA-Einführungsprojekts bei der NTT DATA Business Solutions AG. In diesem Projekt ist das Budget-Controlling ein zentraler Bestandteil der Projektsteuerung. Die Budgetplanung und -überwachung erfolgt derzeit auf Basis von Excel-Dateien, die manuell gepflegt und über Microsoft SharePoint geteilt werden. Dabei werden Budget-Metriken wie geplante Personentage (Budget~PT), tatsächlich gebuchte Aufwände (Actual~PT), verbleibende Restaufwände (ETC~PT) sowie die Gesamtprognose (EAC~PT) in verschiedenen Tabellenblättern verwaltet und manuell aggregiert.
 
 Diese Arbeitsweise ist mit mehreren Herausforderungen verbunden:
 \begin{itemize}
-    \item Fehlende Echtzeitdaten -- Informationen sind häufig veraltet
-    \item Manuelle Fehlerquellen bei der Dateneingabe
-    \item Fehlende Integration mit SAP-Systemen
-    \item Eingeschränkte Nachvollziehbarkeit von Änderungen
-    \item Aufwendige manuelle Aggregation von Budget-Metriken
+    \item \textbf{Fehlende Echtzeitdaten} -- Budget-Informationen sind häufig veraltet, da Excel-Dateien manuell aktualisiert werden müssen
+    \item \textbf{Manuelle Fehlerquellen} -- Die Dateneingabe und -aggregation über mehrere Tabellenblätter ist fehleranfällig
+    \item \textbf{Fehlende Systemintegration} -- Es existiert keine automatische Verbindung zwischen den Excel-Daten und SAP-Systemen wie \gls{calm}
+    \item \textbf{Eingeschränkte Nachvollziehbarkeit} -- Änderungen an Budget-Zuordnungen sind schwer nachvollziehbar
+    \item \textbf{Heterogene Datenquellen} -- Relevante Daten verteilen sich auf unterschiedliche Quellen (Excel-Sheets, SAP-Zeitbuchungen, Planungsdaten), die manuell zusammengeführt werden müssen
 \end{itemize}
 
-Gleichzeitig stellt SAP mit dem \gls{calm} eine moderne Lösung für das Application Lifecycle Management bereit, die perspektivisch auch für das Budget-Controlling genutzt werden kann. Der Übergang von einer Excel-basierten Lösung zu einer service-orientierten Architektur ist jedoch mit erheblichem Aufwand verbunden.
+Gleichzeitig stellt SAP mit dem \gls{calm} eine moderne Lösung für das Application Lifecycle Management bereit, die perspektivisch auch für das Budget-Controlling genutzt werden kann. Der Übergang von einer Excel-basierten Lösung zu einer service-orientierten Architektur ist jedoch mit erheblichem Aufwand verbunden und kann nicht in einem einzelnen Schritt erfolgen. Es bedarf daher einer Architektur, die beide Ansätze unterstützt und einen schrittweisen Übergang ermöglicht.
 
 \subsection{Zielsetzung}
 
-Ziel dieser Arbeit ist der Entwurf und die Implementierung einer Middleware, welche die folgenden Anforderungen erfüllt:
+Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}, welche die folgenden Anforderungen erfüllt:
 \begin{enumerate}
-    \item Eine einheitliche \gls{api} für das Frontend bereitstellt
-    \item Aktuell Excel-Daten von SharePoint verarbeiten kann
-    \item Zukünftig auf \gls{odata}-Services von SAP \gls{calm} umgestellt werden kann
-    \item Den Wechsel zwischen beiden Backends mit minimalem Aufwand ermöglicht
+    \item Heterogene Datenquellen (Excel/SharePoint, perspektivisch \gls{odata}-Services) hinter einer einheitlichen \gls{api} abstrahieren
+    \item Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen
+    \item Durch den Einsatz geeigneter Architekturmuster die Austauschbarkeit des Backends gewährleisten
+    \item Den schrittweisen Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen mit minimalem Aufwand ermöglichen
 \end{enumerate}
 
 \subsection{Forschungsfrage}
@@ -32,28 +32,28 @@ Ziel dieser Arbeit ist der Entwurf und die Implementierung einer Middleware, wel
 Die zentrale Forschungsfrage dieser Arbeit lautet:
 
 \begin{quote}
-\textit{Wie kann eine Middleware-Architektur gestaltet werden, die einen austauschbaren Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration ermöglicht?}
+\textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 \end{quote}
 
 Daraus ergeben sich folgende Teilfragen:
 \begin{itemize}
-    \item Welche Architekturmuster eignen sich für austauschbare Datenquellen?
-    \item Wie unterscheiden sich die beiden Ansätze hinsichtlich Wartbarkeit und Erweiterbarkeit?
-    \item Welcher Implementierungsaufwand ist für den Wechsel zwischen den Backends erforderlich?
+    \item Welche Architekturmuster eignen sich für die Abstraktion heterogener Datenquellen in einer Cloud-Middleware?
+    \item Wie unterscheiden sich ein Excel-basiertes Backend und eine service-orientierte Integration hinsichtlich Wartbarkeit, Erweiterbarkeit und Performance?
+    \item Welcher konkrete Implementierungsaufwand ist für den Wechsel zwischen den Backend-Varianten erforderlich?
 \end{itemize}
 
 \subsection{Aufbau der Arbeit}
 
-Die Arbeit gliedert sich wie folgt:
+Die Arbeit gliedert sich in sieben Kapitel:
 
-\textbf{Kapitel~2} erläutert die theoretischen Grundlagen zu SAP \gls{cap}, \gls{odata}, Cloud Computing und relevanten Architekturmustern wie dem Adapter-Pattern.
+\textbf{Kapitel~2} erläutert die theoretischen Grundlagen zu SAP \gls{btp}, \gls{cap}, \gls{odata}, Cloud Computing und relevanten Architekturmustern wie dem Adapter- und Repository-Pattern.
 
-\textbf{Kapitel~3} analysiert die bestehende Situation im Budget-Controlling und definiert die funktionalen sowie nicht-funktionalen Anforderungen an die Middleware.
+\textbf{Kapitel~3} analysiert die bestehende Situation im Budget-Controlling, identifiziert die Probleme des Excel-basierten Workflows und definiert funktionale sowie nicht-funktionale Anforderungen an die Middleware.
 
-\textbf{Kapitel~4} beschreibt den Architekturentwurf der Middleware mit Fokus auf die Austauschbarkeit der Backends und dokumentiert zentrale Designentscheidungen.
+\textbf{Kapitel~4} beschreibt den Architekturentwurf der Middleware mit einer Schichtenarchitektur und dem Adapter-Pattern als zentralem Entkopplungsmechanismus. Zentrale Designentscheidungen werden dokumentiert und begründet.
 
-\textbf{Kapitel~5} dokumentiert die Implementierung der Lösung auf der SAP \gls{btp}, einschließlich der Herausforderungen beim Excel-Parsing.
+\textbf{Kapitel~5} dokumentiert die Implementierung der Lösung auf der SAP \gls{btp}, einschließlich des Excel-Parsings, der Budget-Berechnung, des Session-Managements und der aufgetretenen Herausforderungen.
 
-\textbf{Kapitel~6} evaluiert die Ergebnisse anhand von Testszenarien, Performance-Messungen und einer SWOT-Analyse.
+\textbf{Kapitel~6} evaluiert die Ergebnisse anhand eines Vergleichs der Backend-Varianten, Testszenarien, Performance-Messungen und einer SWOT-Analyse.
 
 \textbf{Kapitel~7} fasst die Ergebnisse zusammen, beantwortet die Forschungsfrage und gibt einen Ausblick auf zukünftige Erweiterungen.
