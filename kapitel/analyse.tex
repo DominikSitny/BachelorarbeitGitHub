@@ -126,7 +126,7 @@ SAP-Administratoren & Betreibt die Anwendung auf BTP & Einfaches Deployment; Mon
 
 \subsection{Use Cases}
 
-Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System. Use Cases sind ein bewährtes Mittel der Anforderungsanalyse, um funktionale Anforderungen aus Nutzersicht zu dokumentieren \citep{sommerville2015}:
+Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit der Middleware-API. Da die vorliegende Arbeit ausschließlich die OData-Schnittstelle bereitstellt und kein Frontend umfasst (siehe Abschnitt~\ref{sec:abgrenzung}), sind die Akteure jeweils API-Konsumenten -- etwa ein Fiori-Frontend oder ein REST-Client \citep{sommerville2015}.
 
 \subsubsection{UC-01: Budget-Übersicht abrufen}
 
@@ -134,17 +134,17 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System
 \centering
 \begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Akteur} & Projektleiter \\
+\textbf{Akteur} & API-Konsument (z.\,B. Fiori-Frontend) \\
 \midrule
-\textbf{Vorbedingung} & Benutzer hat Session gestartet \\
+\textbf{Vorbedingung} & Eine gültige Session-ID liegt vor (\texttt{x-session-id} Header) \\
 \midrule
 \textbf{Ablauf} &
-1. Benutzer öffnet Budget-Dashboard \\
-& 2. Frontend ruft GET /BudgetOverview auf \\
-& 3. Middleware lädt Excel, berechnet Metriken \\
-& 4. Frontend zeigt Budget/Actual/ETC/EAC pro Team \\
+1. Client sendet \texttt{GET /api/budget/BudgetOverview} mit \texttt{x-session-id} Header \\
+& 2. Middleware validiert die Session und ermittelt das zugehörige Projekt \\
+& 3. Middleware lädt die Excel-Datei des Projekts und berechnet die Budget-Metriken \\
+& 4. Middleware gibt ein OData-konformes JSON-Array mit Budget, Actual, ETC und EAC pro Team zurück \\
 \midrule
-\textbf{Nachbedingung} & Aktuelle Budget-Metriken werden angezeigt \\
+\textbf{Nachbedingung} & Client erhält die berechneten Budget-Metriken als OData-Response \\
 \bottomrule
 \end{tabularx}
 \caption{Use Case: Budget-Übersicht abrufen}
@@ -156,46 +156,44 @@ Die folgenden Use Cases beschreiben die wichtigsten Interaktionen mit dem System
 \centering
 \begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Akteur} & Controller \\
+\textbf{Akteur} & API-Konsument (z.\,B. Fiori-Frontend) \\
 \midrule
-\textbf{Vorbedingung} & User Story existiert ohne PSP-Zuordnung \\
+\textbf{Vorbedingung} & Gültige Session; User Story existiert ohne PSP-Zuordnung \\
 \midrule
 \textbf{Ablauf} &
-1. Controller wählt User Story aus Liste \\
-& 2. Controller wählt PSP-Element aus Dropdown \\
-& 3. Frontend ruft POST /createPSPAssignment auf \\
-& 4. Middleware schreibt Zuordnung in Excel \\
-& 5. Bestätigung wird angezeigt \\
+1. Client sendet \texttt{POST /api/budget/createPSPAssignment} mit den Parametern \texttt{userStory}, \texttt{psp}, \texttt{teamUserStory} und \texttt{teamPSP} \\
+& 2. Middleware prüft, ob die Zuordnung bereits existiert (bei Duplikat: \texttt{409 Conflict}) \\
+& 3. Middleware schreibt die Zuordnung in das Sheet \enquote{1. PSP-Zuordnung} der Excel-Datei \\
+& 4. Middleware gibt eine Bestätigung mit der erstellten Zuordnung zurück \\
 \midrule
-\textbf{Nachbedingung} & User Story ist PSP zugeordnet; ETC wird berechnet \\
+\textbf{Nachbedingung} & Die Zuordnung ist in der Excel-Datei persistiert; nachfolgende Abfragen berücksichtigen das neue PSP in der ETC-Berechnung \\
 \midrule
-\textbf{Alternativ} & Bei Team-Mismatch: Warnung anzeigen \\
+\textbf{Alternativ} & Unterscheiden sich \texttt{teamUserStory} und \texttt{teamPSP}, enthält die Response eine Team-Mismatch-Warnung \\
 \bottomrule
 \end{tabularx}
 \caption{Use Case: PSP-Zuordnung erstellen}
 \end{table}
 
-\subsubsection{UC-03: Projekt wechseln}
+\subsubsection{UC-03: Session starten und Projekt wählen}
 
 \begin{table}[H]
 \centering
 \begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Akteur} & Alle Benutzer \\
+\textbf{Akteur} & API-Konsument (z.\,B. Fiori-Frontend) \\
 \midrule
-\textbf{Vorbedingung} & Mehrere Projekte sind konfiguriert \\
+\textbf{Vorbedingung} & Mindestens ein Projekt ist in \texttt{excel\_templates/} konfiguriert \\
 \midrule
 \textbf{Ablauf} &
-1. Benutzer ruft GET /getProjects() auf \\
-& 2. Liste verfügbarer Projekte wird angezeigt \\
-& 3. Benutzer wählt Projekt aus \\
-& 4. POST /startSession mit Projektname \\
-& 5. Session-ID wird zurückgegeben und gespeichert \\
+1. Client sendet \texttt{GET /api/budget/getProjects()} und erhält eine Liste verfügbarer Projekte \\
+& 2. Client sendet \texttt{POST /api/budget/startSession} mit dem gewählten Projektnamen \\
+& 3. Middleware erstellt eine Session im Arbeitsspeicher und gibt eine Session-ID zurück \\
+& 4. Client speichert die Session-ID und sendet sie bei allen folgenden Requests im \texttt{x-session-id} Header \\
 \midrule
-\textbf{Nachbedingung} & Alle folgenden Requests nutzen das gewählte Projekt \\
+\textbf{Nachbedingung} & Alle nachfolgenden API-Aufrufe mit dieser Session-ID beziehen sich auf das gewählte Projekt \\
 \bottomrule
 \end{tabularx}
-\caption{Use Case: Projekt wechseln}
+\caption{Use Case: Session starten und Projekt wählen}
 \end{table}
 
 \subsection{Anforderungsanalyse}
@@ -270,5 +268,6 @@ Die Anforderungen werden nach der MoSCoW-Methode priorisiert \citep{sommerville2
 \end{table}
 
 \subsection{Abgrenzung}
+\label{sec:abgrenzung}
 
 Mehrere Aspekte sind bewusst nicht Bestandteil dieser Arbeit. Das Fiori-Frontend wird von anderen Studierenden im Rahmen separater Arbeiten entwickelt; die vorliegende Arbeit stellt lediglich die API bereit. Die vollständige CALM-Integration wird nur konzeptionell beschrieben, aber nicht implementiert, was dennoch eine Bewertung der Austauschbarkeit ermöglicht. Die Benutzer-Authentifizierung wird durch die SAP BTP (XSUAA Service) bereitgestellt und ist somit nicht Teil der Middleware-Implementierung. Eine vollständige Audit-Trail-Funktionalität für die Historisierung von Änderungen ist ebenso wenig vorgesehen wie eine vollständige Mandantentrennung mit separaten Datenbeständen -- die Middleware unterstützt zwar mehrere Projekte, jedoch keine echte Mandantenfähigkeit.
