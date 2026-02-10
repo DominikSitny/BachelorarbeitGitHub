@@ -4,29 +4,13 @@ In diesem Kapitel werden die theoretischen Grundlagen erläutert, die für das V
 
 \subsection{SAP Business Technology Platform}
 
-Die SAP \gls{btp} ist die zentrale Entwicklungs- und Integrationsplattform von SAP für Cloud-Anwendungen \citep{sap2024btp}. Sie vereint Datenbank-, Analyse-, Integrations- und Entwicklungsfunktionen in einer einheitlichen Umgebung. Die Plattform gliedert sich in vier zentrale Bereiche:
-
-\begin{itemize}
-    \item \textbf{Database \& Data Management}: SAP HANA Cloud, Data Intelligence
-    \item \textbf{Analytics}: SAP Analytics Cloud, Embedded Analytics
-    \item \textbf{Application Development \& Integration}: CAP, Integration Suite, API Management
-    \item \textbf{Intelligent Technologies}: AI, Machine Learning, IoT
-\end{itemize}
-
-Für die Entwicklung von Enterprise-Anwendungen stellt die BTP verschiedene Laufzeitumgebungen bereit, darunter Cloud Foundry, Kyma (Kubernetes-basiert) und ABAP Environment \citep{erl2013}.
+Die SAP \gls{btp} ist die zentrale Entwicklungs- und Integrationsplattform von SAP für Cloud-Anwendungen \citep{sap2024btp}. Sie vereint Datenbank-, Analyse-, Integrations- und Entwicklungsfunktionen in einer einheitlichen Umgebung. Die Plattform gliedert sich in vier zentrale Bereiche: Database \& Data Management (SAP HANA Cloud, Data Intelligence), Analytics (SAP Analytics Cloud, Embedded Analytics), Application Development \& Integration (CAP, Integration Suite, API Management) sowie Intelligent Technologies (AI, Machine Learning, IoT). Für die Entwicklung von Enterprise-Anwendungen stellt die BTP verschiedene Laufzeitumgebungen bereit, darunter Cloud Foundry, Kyma (Kubernetes-basiert) und ABAP Environment \citep{erl2013}.
 
 \subsubsection{Cloud Foundry Environment}
 
 Cloud Foundry ist eine Open-Source-Platform-as-a-Service (PaaS), die SAP als primäre Laufzeitumgebung auf der BTP anbietet \citep{cloudfoundry2024}. Sie ermöglicht das Deployment von Anwendungen in verschiedenen Programmiersprachen (Node.js, Java, Python, Go) ohne manuelle Infrastrukturverwaltung.
 
-Die wesentlichen Konzepte von Cloud Foundry sind:
-
-\begin{itemize}
-    \item \textbf{Organizations \& Spaces}: Hierarchische Struktur zur Mandantentrennung und Umgebungsverwaltung (Dev, Test, Prod)
-    \item \textbf{Buildpacks}: Automatische Erkennung und Kompilierung der Anwendung basierend auf der Programmiersprache
-    \item \textbf{Services}: Verwaltete Dienste (Datenbanken, Message Queues), die an Anwendungen gebunden werden
-    \item \textbf{Routes}: URL-Mappings für den externen Zugriff auf Anwendungen
-\end{itemize}
+Die wesentlichen Konzepte von Cloud Foundry umfassen Organizations und Spaces als hierarchische Struktur zur Mandantentrennung und Umgebungsverwaltung (Dev, Test, Prod), Buildpacks zur automatischen Erkennung und Kompilierung der Anwendung basierend auf der Programmiersprache, Services als verwaltete Dienste (Datenbanken, Message Queues), die an Anwendungen gebunden werden, sowie Routes als URL-Mappings für den externen Zugriff auf Anwendungen.
 
 Das Deployment erfolgt über das Cloud Foundry CLI mit dem Befehl \texttt{cf push}, welcher die Anwendung paketiert, einen Container erstellt und die Instanzen startet. Dieser Ansatz folgt dem \enquote{Cloud Native}-Paradigma, bei dem Anwendungen für die Cloud-Umgebung optimiert werden \citep{davis2019}.
 
@@ -34,14 +18,7 @@ Das Deployment erfolgt über das Cloud Foundry CLI mit dem Befehl \texttt{cf pus
 
 SAP \gls{calm} ist eine cloudbasierte Lösung für das Application Lifecycle Management \citep{sap2024calm}. Es unterstützt Unternehmen bei der Planung, Implementierung und dem Betrieb von SAP-Lösungen über den gesamten Lebenszyklus hinweg.
 
-Die Kernfunktionen von SAP Cloud ALM umfassen:
-
-\begin{itemize}
-    \item \textbf{Implementation}: Projektplanung, Aufgabenverwaltung, User Stories, Anforderungsmanagement
-    \item \textbf{Operations}: Monitoring, Health Management, Job Scheduling
-    \item \textbf{Analytics}: Dashboards, Reports, KPIs
-    \item \textbf{Process Management}: Prozessdokumentation, Fit-to-Standard-Workshops
-\end{itemize}
+Die Kernfunktionen von SAP Cloud ALM umfassen den Bereich Implementation mit Projektplanung, Aufgabenverwaltung und Anforderungsmanagement, Operations für Monitoring und Health Management, Analytics mit Dashboards und KPIs sowie Process Management für Prozessdokumentation und Fit-to-Standard-Workshops.
 
 Für diese Arbeit ist insbesondere der Implementation-Bereich relevant, da hier User Stories und deren Aufwände verwaltet werden. SAP Cloud ALM stellt diese Daten über \gls{odata}-Services bereit, was eine programmatische Integration ermöglicht. Die Verwaltung von Projektbudgets und Aufwänden entspricht dabei den etablierten Praktiken des Projektmanagements \citep{kerzner2017, pmi2021}.
 
@@ -49,14 +26,7 @@ Für diese Arbeit ist insbesondere der Implementation-Bereich relevant, da hier 
 
 Das \gls{cap} ist ein Framework für die Entwicklung von Enterprise-Anwendungen auf der SAP \gls{btp} \citep{sap2024cap}. Es basiert auf bewährten Open-Source-Technologien und bietet eine einheitliche Programmierabstraktion für verschiedene Datenbanken und Protokolle. Das Framework folgt dem Prinzip \enquote{Convention over Configuration} und reduziert Boilerplate-Code durch deklarative Definitionen.
 
-Die Kernprinzipien von CAP sind:
-
-\begin{itemize}
-    \item \textbf{Domain-Driven Design}: Fokus auf das Domänenmodell statt technischer Details \citep{evans2003}
-    \item \textbf{Deklarative Definitionen}: Datenmodelle und Services in CDS statt imperativem Code
-    \item \textbf{Best Practices}: Integrierte Unterstützung für OData, REST, Authentifizierung
-    \item \textbf{Polyglotte Persistenz}: Abstraktion über verschiedene Datenbanken (SQLite, HANA, PostgreSQL)
-\end{itemize}
+Die Kernprinzipien von CAP orientieren sich am Domain-Driven Design mit Fokus auf das Domänenmodell statt technischer Details \citep{evans2003}. Datenmodelle und Services werden deklarativ in CDS definiert statt in imperativem Code. Das Framework bietet integrierte Unterstützung für OData, REST und Authentifizierung und abstrahiert über verschiedene Datenbanken (SQLite, HANA, PostgreSQL) im Sinne einer polyglotten Persistenz.
 
 \subsubsection{Core Data Services}
 
@@ -76,15 +46,7 @@ service BudgetService @(path: '/api/budget') {
 }
 \end{lstlisting}
 
-Zentrale CDS-Konzepte sind:
-
-\begin{itemize}
-    \item \textbf{Entities}: Datenstrukturen mit Schlüsselfeldern und Attributen
-    \item \textbf{Services}: Gruppierung von Entities, die als API exponiert werden
-    \item \textbf{Functions}: Lesende Operationen (HTTP GET)
-    \item \textbf{Actions}: Schreibende Operationen (HTTP POST)
-    \item \textbf{Annotations}: Metadaten für UI, Validierung, Autorisierung
-\end{itemize}
+Zentrale CDS-Konzepte sind Entities als Datenstrukturen mit Schlüsselfeldern und Attributen, Services zur Gruppierung von Entities, die als API exponiert werden, Functions für lesende Operationen (HTTP GET), Actions für schreibende Operationen (HTTP POST) sowie Annotations als Metadaten für UI, Validierung und Autorisierung.
 
 Die Annotation \texttt{@cds.persistence.skip} kennzeichnet Entitäten, die nicht in einer Datenbank persistiert werden, sondern zur Laufzeit aus anderen Quellen generiert werden -- ein zentrales Konzept für die BC Middleware.
 
@@ -113,33 +75,13 @@ module.exports = class BudgetService extends cds.ApplicationService {
 }
 \end{lstlisting}
 
-Die verfügbaren Ereignisse sind:
-
-\begin{itemize}
-    \item \textbf{before}: Wird vor der Operation ausgeführt (Validierung, Anreicherung)
-    \item \textbf{on}: Ersetzt die Standardimplementierung der Operation
-    \item \textbf{after}: Wird nach der Operation ausgeführt (Transformation, Logging)
-\end{itemize}
+Die verfügbaren Ereignisse gliedern sich in \texttt{before}-Handler, die vor der Operation ausgeführt werden und typischerweise der Validierung dienen, \texttt{on}-Handler, welche die Standardimplementierung der Operation ersetzen, sowie \texttt{after}-Handler für nachgelagerte Transformationen und Logging.
 
 Dieses Modell ermöglicht eine saubere Trennung zwischen der deklarativen API-Definition in CDS und der imperativen Geschäftslogik in JavaScript.
 
 \subsection{REST und RESTful APIs}
 
-Representational State Transfer (REST) ist ein Architekturstil für verteilte Systeme, der von Roy Fielding in seiner Dissertation definiert wurde \citep{fielding2000}. REST basiert auf sechs Grundprinzipien:
-
-\begin{enumerate}
-    \item \textbf{Client-Server-Architektur}: Strikte Trennung zwischen Client (Benutzeroberfläche) und Server (Datenhaltung). Dies ermöglicht unabhängige Entwicklung und Skalierung beider Komponenten.
-
-    \item \textbf{Zustandslosigkeit}: Jede Anfrage vom Client an den Server muss alle Informationen enthalten, die zur Verarbeitung notwendig sind. Der Server speichert keinen Client-Zustand zwischen Anfragen.
-
-    \item \textbf{Cachebarkeit}: Antworten müssen als cachebar oder nicht-cachebar gekennzeichnet sein, um die Netzwerkeffizienz zu verbessern.
-
-    \item \textbf{Einheitliche Schnittstelle}: Ressourcen werden über URIs identifiziert und über standardisierte HTTP-Methoden manipuliert (GET, POST, PUT, DELETE).
-
-    \item \textbf{Schichtensystem}: Die Architektur kann aus mehreren Schichten bestehen (Load Balancer, Caches, Gateways), die für den Client transparent sind.
-
-    \item \textbf{Code on Demand} (optional): Server können ausführbaren Code an Clients senden (z.B. JavaScript).
-\end{enumerate}
+Representational State Transfer (REST) ist ein Architekturstil für verteilte Systeme, der von Roy Fielding in seiner Dissertation definiert wurde \citep{fielding2000}. REST basiert auf sechs Grundprinzipien. Das erste Prinzip ist die strikte Trennung zwischen Client und Server (Client-Server-Architektur), die eine unabhängige Entwicklung und Skalierung beider Komponenten ermöglicht. Die Zustandslosigkeit als zweites Prinzip erfordert, dass jede Anfrage alle zur Verarbeitung notwendigen Informationen enthält -- der Server speichert keinen Client-Zustand zwischen Anfragen. Drittens müssen Antworten als cachebar oder nicht-cachebar gekennzeichnet sein (Cachebarkeit), um die Netzwerkeffizienz zu verbessern. Das vierte Prinzip der einheitlichen Schnittstelle besagt, dass Ressourcen über URIs identifiziert und über standardisierte HTTP-Methoden manipuliert werden. Fünftens kann die Architektur als Schichtensystem aus mehreren für den Client transparenten Schichten bestehen (Load Balancer, Caches, Gateways). Das sechste, optionale Prinzip Code on Demand erlaubt es Servern, ausführbaren Code an Clients zu senden.
 
 Die HTTP-Methoden werden in REST wie folgt verwendet:
 
@@ -164,19 +106,7 @@ OData baut auf diesen REST-Prinzipien auf und erweitert sie um standardisierte Q
 
 \subsection{Cloud Computing Grundlagen}
 
-Cloud Computing bezeichnet die bedarfsgerechte Bereitstellung von IT-Ressourcen über das Internet \citep{erl2013}. Das National Institute of Standards and Technology (NIST) definiert in seiner weithin anerkannten Definition fünf wesentliche Charakteristiken \citep{mell2011}:
-
-\begin{itemize}
-    \item \textbf{On-Demand Self-Service}: Nutzer können Ressourcen automatisch und ohne menschliche Interaktion mit dem Anbieter bereitstellen.
-
-    \item \textbf{Broad Network Access}: Dienste sind über Standardnetzwerke und heterogene Client-Plattformen verfügbar.
-
-    \item \textbf{Resource Pooling}: Ressourcen des Anbieters werden gebündelt und dynamisch mehreren Nutzern zugewiesen (Multi-Tenancy).
-
-    \item \textbf{Rapid Elasticity}: Kapazitäten können schnell und elastisch bereitgestellt werden, oft automatisch.
-
-    \item \textbf{Measured Service}: Ressourcennutzung wird gemessen, überwacht und transparent abgerechnet.
-\end{itemize}
+Cloud Computing bezeichnet die bedarfsgerechte Bereitstellung von IT-Ressourcen über das Internet \citep{erl2013}. Das National Institute of Standards and Technology (NIST) definiert in seiner weithin anerkannten Definition fünf wesentliche Charakteristiken \citep{mell2011}: On-Demand Self-Service ermöglicht es Nutzern, Ressourcen automatisch und ohne menschliche Interaktion bereitzustellen. Broad Network Access stellt sicher, dass Dienste über Standardnetzwerke und heterogene Client-Plattformen verfügbar sind. Beim Resource Pooling werden Ressourcen des Anbieters gebündelt und dynamisch mehreren Nutzern zugewiesen (Multi-Tenancy). Rapid Elasticity bezeichnet die Fähigkeit, Kapazitäten schnell und oft automatisch bereitzustellen. Schließlich gewährleistet Measured Service, dass die Ressourcennutzung gemessen, überwacht und transparent abgerechnet wird.
 
 \subsubsection{Service-Modelle}
 
@@ -206,13 +136,7 @@ Cloud-Dienste werden in drei Service-Modelle unterteilt:
 \label{fig:cloud-models}
 \end{figure}
 
-\begin{itemize}
-    \item \textbf{Infrastructure as a Service (IaaS)}: Bereitstellung von Rechenleistung, Speicher und Netzwerk. Beispiel: Amazon EC2, Microsoft Azure VMs.
-
-    \item \textbf{Platform as a Service (PaaS)}: Bereitstellung einer Entwicklungs- und Laufzeitumgebung. Der Nutzer verwaltet nur die Anwendung. Beispiel: SAP BTP Cloud Foundry, Heroku.
-
-    \item \textbf{Software as a Service (SaaS)}: Bereitstellung fertiger Anwendungen. Beispiel: SAP S/4HANA Cloud, Microsoft 365.
-\end{itemize}
+Infrastructure as a Service (IaaS) umfasst die Bereitstellung von Rechenleistung, Speicher und Netzwerk, wie beispielsweise Amazon EC2 oder Microsoft Azure VMs. Platform as a Service (PaaS) stellt eine Entwicklungs- und Laufzeitumgebung bereit, bei der der Nutzer lediglich die Anwendung verwaltet -- Beispiele hierfür sind SAP BTP Cloud Foundry und Heroku. Software as a Service (SaaS) bezeichnet die Bereitstellung fertiger Anwendungen wie SAP S/4HANA Cloud oder Microsoft 365.
 
 Wie in Abbildung~\ref{fig:cloud-models} dargestellt, ist die SAP BTP primär ein PaaS-Angebot, das Entwicklern eine Plattform für die Erstellung und den Betrieb von Anwendungen bereitstellt \citep{sap2024btp}.
 
@@ -220,14 +144,7 @@ Wie in Abbildung~\ref{fig:cloud-models} dargestellt, ist die SAP BTP primär ein
 
 Das \gls{odata} ist ein offener Standard für \gls{rest}ful \gls{api}s, der von OASIS standardisiert wurde \citep{oasis2020odata}. Es definiert bewährte Praktiken für den Aufbau und die Nutzung von Web-APIs und wird von SAP als Standard für die Kommunikation zwischen Frontend und Backend verwendet \citep{sap2024odata}.
 
-OData baut auf den Prinzipien von REST auf \citep{fielding2000} und erweitert diese um:
-
-\begin{itemize}
-    \item Einheitliche URL-Konventionen für Ressourcenzugriff
-    \item Standardisierte Query-Optionen für Filterung, Sortierung, Paginierung
-    \item Metadaten-Dokumente zur Selbstbeschreibung der API
-    \item Batch-Requests für mehrere Operationen in einer Anfrage
-\end{itemize}
+OData baut auf den Prinzipien von REST auf \citep{fielding2000} und erweitert diese um einheitliche URL-Konventionen für den Ressourcenzugriff, standardisierte Query-Optionen für Filterung, Sortierung und Paginierung, Metadaten-Dokumente zur Selbstbeschreibung der API sowie Batch-Requests für mehrere Operationen in einer Anfrage.
 
 \subsubsection{OData v4}
 
@@ -252,12 +169,7 @@ OData Version 4.01 ist die aktuelle Version des Standards und bietet gegenüber 
 \end{tabularx}
 \end{table}
 
-Zusätzlich zu den Query-Optionen definiert OData v4 zwei Arten von benutzerdefinierten Operationen:
-
-\begin{itemize}
-    \item \textbf{Functions}: Lesende Operationen ohne Seiteneffekte (HTTP GET). Beispiel: \texttt{getProjects()} gibt eine Liste verfügbarer Projekte zurück.
-    \item \textbf{Actions}: Schreibende Operationen mit potentiellen Seiteneffekten (HTTP POST). Beispiel: \texttt{startSession(project)} erstellt eine neue Session.
-\end{itemize}
+Zusätzlich zu den Query-Optionen definiert OData v4 zwei Arten von benutzerdefinierten Operationen: Functions sind lesende Operationen ohne Seiteneffekte (HTTP GET) -- beispielsweise gibt \texttt{getProjects()} eine Liste verfügbarer Projekte zurück. Actions hingegen sind schreibende Operationen mit potentiellen Seiteneffekten (HTTP POST), etwa \texttt{startSession(project)} zur Erstellung einer neuen Session.
 
 SAP CAP generiert automatisch OData v4-konforme Endpunkte aus den CDS-Service-Definitionen, was die Entwicklung erheblich beschleunigt \citep{sap2024cap}.
 
@@ -294,14 +206,7 @@ Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Daten
 
 Das Repository-Pattern abstrahiert den Datenzugriff und stellt eine einheitliche Schnittstelle für die Geschäftslogik bereit \citep{fowler2002}. Es fungiert als Vermittler zwischen der Domänenschicht und der Datenzugriffsschicht.
 
-Die Vorteile des Repository-Patterns sind:
-
-\begin{itemize}
-    \item \textbf{Entkopplung}: Die Geschäftslogik ist unabhängig von der konkreten Datenquelle
-    \item \textbf{Testbarkeit}: Repositories können durch Mock-Objekte ersetzt werden
-    \item \textbf{Zentralisierung}: Datenzugriffslogik ist an einer Stelle gebündelt
-    \item \textbf{Austauschbarkeit}: Die Implementierung kann geändert werden, ohne die Geschäftslogik anzupassen
-\end{itemize}
+Die Vorteile des Repository-Patterns liegen in der Entkopplung der Geschäftslogik von der konkreten Datenquelle, der verbesserten Testbarkeit durch ersetzbare Mock-Objekte, der Zentralisierung der Datenzugriffslogik an einer Stelle sowie der Austauschbarkeit der Implementierung, ohne die Geschäftslogik anpassen zu müssen.
 
 In Kombination mit dem Adapter-Pattern ergibt sich eine Architektur, bei der das Repository die Adapter-Schnittstelle nutzt und die Service-Schicht nur mit dem Repository kommuniziert.
 
@@ -324,37 +229,17 @@ Die Schichtenarchitektur (engl. Layered Architecture) ist eines der fundamentals
 \label{fig:layer-architecture}
 \end{figure}
 
-Die Vorteile dieser Struktur sind:
-
-\begin{itemize}
-    \item \textbf{Separation of Concerns}: Jede Schicht hat eine klar definierte Aufgabe \citep{sommerville2015}
-    \item \textbf{Wartbarkeit}: Änderungen in einer Schicht haben minimale Auswirkungen auf andere Schichten
-    \item \textbf{Wiederverwendbarkeit}: Schichten können in anderen Kontexten wiederverwendet werden
-    \item \textbf{Testbarkeit}: Schichten können isoliert getestet werden
-\end{itemize}
+Die Vorteile dieser Struktur liegen in der klaren Separation of Concerns, bei der jede Schicht eine definierte Aufgabe hat \citep{sommerville2015}. Änderungen in einer Schicht haben minimale Auswirkungen auf andere Schichten, was die Wartbarkeit erhöht. Zudem können Schichten in anderen Kontexten wiederverwendet und isoliert getestet werden.
 
 \subsection{Microsoft Graph API}
 
 Die Microsoft \gls{graph} ermöglicht den programmgesteuerten Zugriff auf Microsoft 365-Dienste, einschließlich SharePoint und OneDrive \citep{microsoft2024graph}. Sie bietet einen einheitlichen Endpunkt (\texttt{https://graph.microsoft.com}) für den Zugriff auf verschiedene Microsoft-Dienste.
 
-Für die BC Middleware sind insbesondere die SharePoint-Funktionen relevant \citep{microsoft2024sharepoint}:
-
-\begin{itemize}
-    \item Lesen von Dateien aus SharePoint-Dokumentbibliotheken
-    \item Schreiben und Aktualisieren von Dateien
-    \item Abrufen von Metadaten (Änderungsdatum, Autor)
-\end{itemize}
+Für die BC Middleware sind insbesondere die SharePoint-Funktionen relevant \citep{microsoft2024sharepoint}: das Lesen von Dateien aus SharePoint-Dokumentbibliotheken, das Schreiben und Aktualisieren von Dateien sowie das Abrufen von Metadaten wie Änderungsdatum und Autor.
 
 \subsubsection{OAuth 2.0 Authentifizierung}
 
-Der Zugriff auf Microsoft Graph erfordert eine Authentifizierung via OAuth 2.0 \citep{microsoft2024oauth}. Für Server-zu-Server-Kommunikation ohne Benutzerinteraktion wird der \enquote{Client Credentials Flow} verwendet:
-
-\begin{enumerate}
-    \item Die Anwendung ist in Azure Active Directory (Azure AD) registriert
-    \item Die Anwendung authentifiziert sich mit Client-ID und Client-Secret
-    \item Azure AD gibt ein Access Token zurück
-    \item Das Token wird bei allen API-Anfragen im Authorization-Header mitgesendet
-\end{enumerate}
+Der Zugriff auf Microsoft Graph erfordert eine Authentifizierung via OAuth 2.0 \citep{microsoft2024oauth}. Für Server-zu-Server-Kommunikation ohne Benutzerinteraktion wird der \enquote{Client Credentials Flow} verwendet. Dabei ist die Anwendung zunächst in Azure Active Directory (Azure AD) registriert und authentifiziert sich mit Client-ID und Client-Secret. Azure AD gibt daraufhin ein Access Token zurück, welches bei allen nachfolgenden API-Anfragen im Authorization-Header mitgesendet wird.
 
 \begin{lstlisting}[caption={Authentifizierung mit Microsoft Graph}, label={lst:ms-auth}]
 const { ConfidentialClientApplication } = require('@azure/msal-node');

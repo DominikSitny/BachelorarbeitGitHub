@@ -48,15 +48,7 @@ Actual & Bereits geleistete Arbeit & CADO Stunden / 8 \\
 
 \subsubsection{Problemanalyse}
 
-Die Analyse des bestehenden Workflows offenbart folgende Probleme:
-
-\begin{enumerate}
-    \item \textbf{Keine Echtzeitdaten}: Power Query wird nur bei manuellem Refresh aktualisiert
-    \item \textbf{Keine API}: Andere Systeme können nicht auf die Daten zugreifen
-    \item \textbf{Manuelle Zuordnungen}: \gls{psp}-Zuordnungen müssen manuell in Excel gepflegt werden
-    \item \textbf{Fehlende Validierung}: Keine automatische Prüfung auf Konsistenz
-    \item \textbf{Keine Historisierung}: Änderungen werden nicht nachvollziehbar protokolliert
-\end{enumerate}
+Die Analyse des bestehenden Workflows offenbart mehrere Probleme. Zunächst stehen keine Echtzeitdaten zur Verfügung, da Power Query nur bei manuellem Refresh aktualisiert wird. Darüber hinaus existiert keine API, über die andere Systeme auf die Daten zugreifen könnten. \gls{psp}-Zuordnungen müssen manuell in Excel gepflegt werden, wobei keine automatische Prüfung auf Konsistenz stattfindet. Schließlich werden Änderungen nicht nachvollziehbar protokolliert, sodass eine Historisierung fehlt.
 
 \subsection{Soll-Konzept}
 
@@ -277,15 +269,4 @@ Die Anforderungen werden nach der MoSCoW-Methode priorisiert \citep{sommerville2
 
 \subsection{Abgrenzung}
 
-Folgende Aspekte sind nicht Bestandteil dieser Arbeit:
-\begin{itemize}
-    \item \textbf{Fiori-Frontend}: Die Benutzeroberfläche wird von anderen Studierenden im Rahmen separater Arbeiten entwickelt. Diese Arbeit stellt lediglich die API bereit.
-
-    \item \textbf{Vollständige CALM-Integration}: Der OData-Adapter für SAP Cloud ALM wird konzeptionell beschrieben, aber nicht implementiert. Dies ermöglicht die Bewertung der Austauschbarkeit ohne vollständige Implementierung.
-
-    \item \textbf{Benutzer-Authentifizierung}: Die Authentifizierung wird durch die SAP BTP (XSUAA Service) bereitgestellt und ist nicht Teil der Middleware-Implementierung.
-
-    \item \textbf{Historisierung}: Eine vollständige Audit-Trail-Funktionalität für Änderungen ist nicht vorgesehen.
-
-    \item \textbf{Mandantenfähigkeit}: Die Middleware unterstützt mehrere Projekte, aber keine vollständige Mandantentrennung mit separaten Datenbeständen.
-\end{itemize}
+Mehrere Aspekte sind bewusst nicht Bestandteil dieser Arbeit. Das Fiori-Frontend wird von anderen Studierenden im Rahmen separater Arbeiten entwickelt; die vorliegende Arbeit stellt lediglich die API bereit. Die vollständige CALM-Integration wird nur konzeptionell beschrieben, aber nicht implementiert, was dennoch eine Bewertung der Austauschbarkeit ermöglicht. Die Benutzer-Authentifizierung wird durch die SAP BTP (XSUAA Service) bereitgestellt und ist somit nicht Teil der Middleware-Implementierung. Eine vollständige Audit-Trail-Funktionalität für die Historisierung von Änderungen ist ebenso wenig vorgesehen wie eine vollständige Mandantentrennung mit separaten Datenbeständen -- die Middleware unterstützt zwar mehrere Projekte, jedoch keine echte Mandantenfähigkeit.

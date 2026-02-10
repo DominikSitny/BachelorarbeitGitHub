@@ -6,26 +6,13 @@ Die digitale Transformation von Geschäftsprozessen stellt Unternehmen vor die H
 
 Die vorliegende Arbeit entstand im Rahmen eines realen SAP S/4HANA-Einführungsprojekts bei der NTT DATA Business Solutions AG. In diesem Projekt ist das Budget-Controlling ein zentraler Bestandteil der Projektsteuerung. Die Budgetplanung und -überwachung erfolgt derzeit auf Basis von Excel-Dateien, die manuell gepflegt und über Microsoft SharePoint geteilt werden. Dabei werden Budget-Metriken wie geplante Personentage (Budget~PT), tatsächlich gebuchte Aufwände (Actual~PT), verbleibende Restaufwände (ETC~PT) sowie die Gesamtprognose (EAC~PT) in verschiedenen Tabellenblättern verwaltet und manuell aggregiert.
 
-Diese Arbeitsweise ist mit mehreren Herausforderungen verbunden:
-\begin{itemize}
-    \item \textbf{Fehlende Echtzeitdaten} -- Budget-Informationen sind häufig veraltet, da Excel-Dateien manuell aktualisiert werden müssen
-    \item \textbf{Manuelle Fehlerquellen} -- Die Dateneingabe und -aggregation über mehrere Tabellenblätter ist fehleranfällig
-    \item \textbf{Fehlende Systemintegration} -- Es existiert keine automatische Verbindung zwischen den Excel-Daten und SAP-Systemen wie \gls{calm}
-    \item \textbf{Eingeschränkte Nachvollziehbarkeit} -- Änderungen an Budget-Zuordnungen sind schwer nachvollziehbar
-    \item \textbf{Heterogene Datenquellen} -- Relevante Daten verteilen sich auf unterschiedliche Quellen (Excel-Sheets, SAP-Zeitbuchungen, Planungsdaten), die manuell zusammengeführt werden müssen
-\end{itemize}
+Diese Arbeitsweise ist mit mehreren Herausforderungen verbunden. Budget-Informationen sind häufig veraltet, da die zugrunde liegenden Excel-Dateien manuell aktualisiert werden müssen und somit keine Echtzeitdaten verfügbar sind. Die Dateneingabe und -aggregation über mehrere Tabellenblätter ist fehleranfällig, während gleichzeitig keine automatische Verbindung zwischen den Excel-Daten und SAP-Systemen wie \gls{calm} existiert. Darüber hinaus sind Änderungen an Budget-Zuordnungen schwer nachvollziehbar. Ein besonderes Problem stellt die Heterogenität der Datenquellen dar: Relevante Daten verteilen sich auf unterschiedliche Quellen -- Excel-Sheets, SAP-Zeitbuchungen und Planungsdaten --, die manuell zusammengeführt werden müssen.
 
 Gleichzeitig stellt SAP mit dem \gls{calm} eine moderne Lösung für das Application Lifecycle Management bereit, die perspektivisch auch für das Budget-Controlling genutzt werden kann. Der Übergang von einer Excel-basierten Lösung zu einer service-orientierten Architektur ist jedoch mit erheblichem Aufwand verbunden und kann nicht in einem einzelnen Schritt erfolgen. Es bedarf daher einer Architektur, die beide Ansätze unterstützt und einen schrittweisen Übergang ermöglicht.
 
 \subsection{Zielsetzung}
 
-Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}, welche die folgenden Anforderungen erfüllt:
-\begin{enumerate}
-    \item Heterogene Datenquellen (Excel/SharePoint, perspektivisch \gls{odata}-Services) hinter einer einheitlichen \gls{api} abstrahieren
-    \item Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen
-    \item Durch den Einsatz geeigneter Architekturmuster die Austauschbarkeit des Backends gewährleisten
-    \item Den schrittweisen Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen mit minimalem Aufwand ermöglichen
-\end{enumerate}
+Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}, welche heterogene Datenquellen -- aktuell Excel-Dateien auf SharePoint, perspektivisch \gls{odata}-Services -- hinter einer einheitlichen \gls{api} abstrahiert. Die Middleware soll Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen. Durch den Einsatz geeigneter Architekturmuster soll dabei die Austauschbarkeit des Backends gewährleistet werden, sodass ein schrittweiser Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen mit minimalem Aufwand möglich ist.
 
 \subsection{Forschungsfrage}
 
@@ -35,12 +22,7 @@ Die zentrale Forschungsfrage dieser Arbeit lautet:
 \textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 \end{quote}
 
-Daraus ergeben sich folgende Teilfragen:
-\begin{itemize}
-    \item Welche Architekturmuster eignen sich für die Abstraktion heterogener Datenquellen in einer Cloud-Middleware?
-    \item Wie unterscheiden sich ein Excel-basiertes Backend und eine service-orientierte Integration hinsichtlich Wartbarkeit, Erweiterbarkeit und Performance?
-    \item Welcher konkrete Implementierungsaufwand ist für den Wechsel zwischen den Backend-Varianten erforderlich?
-\end{itemize}
+Daraus ergeben sich folgende Teilfragen: Erstens, welche Architekturmuster eignen sich für die Abstraktion heterogener Datenquellen in einer Cloud-Middleware? Zweitens, wie unterscheiden sich ein Excel-basiertes Backend und eine service-orientierte Integration hinsichtlich Wartbarkeit, Erweiterbarkeit und Performance? Drittens, welcher konkrete Implementierungsaufwand ist für den Wechsel zwischen den Backend-Varianten erforderlich?
 
 \subsection{Aufbau der Arbeit}
 

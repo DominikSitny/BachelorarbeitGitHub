@@ -4,15 +4,7 @@ Dieses abschließende Kapitel fasst die Ergebnisse der Arbeit zusammen, beantwor
 
 \subsection{Zusammenfassung}
 
-Diese Bachelorarbeit hat den Entwurf und die Implementierung einer Middleware für Budget-Controlling im SAP-Umfeld dokumentiert. Die entwickelte BC Middleware erfüllt die gestellten Anforderungen:
-
-\begin{itemize}
-    \item Eine einheitliche \gls{odata} v4-konforme \gls{api} wurde bereitgestellt
-    \item Excel-Daten werden erfolgreich geparst und aggregiert
-    \item Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}) werden korrekt berechnet
-    \item \gls{crud}-Operationen für \gls{psp}-Zuordnungen wurden implementiert
-    \item Die Architektur ermöglicht den Austausch des Backends
-\end{itemize}
+Diese Bachelorarbeit hat den Entwurf und die Implementierung einer Middleware für Budget-Controlling im SAP-Umfeld dokumentiert. Die entwickelte BC Middleware erfüllt die gestellten Anforderungen: Es wurde eine einheitliche \gls{odata} v4-konforme \gls{api} bereitgestellt, über die Excel-Daten erfolgreich geparst und aggregiert werden. Die Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}) werden korrekt berechnet und \gls{crud}-Operationen für \gls{psp}-Zuordnungen wurden implementiert. Die gewählte Architektur ermöglicht darüber hinaus den Austausch des Backends.
 
 Die Middleware wurde erfolgreich auf der SAP \gls{btp} deployed und steht für die Integration mit dem Fiori-Frontend bereit.
 
@@ -24,17 +16,7 @@ Die zentrale Forschungsfrage lautete:
 \textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 \end{quote}
 
-Es wird gezeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} eine solche Architektur realisierbar ist. Die Schlüsselelemente umfassen:
-
-\begin{enumerate}
-    \item \textbf{Einheitliches Datenmodell}: Unabhängig von der Datenquelle wird intern das gleiche Modell verwendet.
-
-    \item \textbf{Adapter-Schicht}: Die Adapter-Schicht kapselt alle datenquellenspezifischen Details. Die Service-Schicht arbeitet nur mit dem abstrakten Interface.
-
-    \item \textbf{Deklarative Service-Definition}: SAP \gls{cap} mit \gls{cds} ermöglicht eine saubere Trennung zwischen \gls{api}-Definition und Implementierung.
-
-    \item \textbf{Berechnung statt Persistierung}: Die Budget-Metriken werden zur Laufzeit berechnet, nicht gespeichert. Dies vereinfacht den Backend-Wechsel.
-\end{enumerate}
+Es wird gezeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} eine solche Architektur realisierbar ist. Die Schlüsselelemente dieser Architektur sind ein einheitliches Datenmodell, das unabhängig von der Datenquelle intern verwendet wird, sowie eine Adapter-Schicht, die alle datenquellenspezifischen Details kapselt, sodass die Service-Schicht ausschließlich mit dem abstrakten Interface arbeitet. Die deklarative Service-Definition mit SAP \gls{cap} und \gls{cds} ermöglicht eine saubere Trennung zwischen \gls{api}-Definition und Implementierung. Schließlich werden die Budget-Metriken zur Laufzeit berechnet statt persistiert, was den Backend-Wechsel zusätzlich vereinfacht.
 
 Der geschätzte Aufwand für einen Wechsel von Excel zu \gls{odata}-Services besteht primär in der Implementierung eines neuen Adapters. Die Service-Schicht, \gls{api}-Definition und das Frontend bleiben unverändert.
 
@@ -42,17 +24,13 @@ Der geschätzte Aufwand für einen Wechsel von Excel zu \gls{odata}-Services bes
 
 Eine wissenschaftliche Arbeit erfordert auch die kritische Betrachtung der eigenen Ergebnisse \citep{wohlin2012}. Folgende Einschränkungen sind zu berücksichtigen:
 
-\begin{itemize}
-    \item \textbf{SharePoint-Integration}: Die direkte SharePoint-Anbindung konnte aufgrund fehlender Berechtigungen nicht vollständig getestet werden. Die lokale Simulation mit Dateien im \texttt{excel\_templates/}-Verzeichnis ist funktional äquivalent, aber die Latenz und Fehlerbehandlung bei Netzwerkzugriffen wurden nicht evaluiert.
+Die direkte SharePoint-Anbindung konnte aufgrund fehlender Berechtigungen nicht vollständig getestet werden. Die lokale Simulation mit Dateien im \texttt{excel\_templates/}-Verzeichnis ist funktional äquivalent, jedoch wurden die Latenz und Fehlerbehandlung bei Netzwerkzugriffen nicht evaluiert.
 
-    \item \textbf{Session-Persistierung}: Sessions werden nur im RAM gehalten und gehen bei Serverneustart verloren. Für den produktiven Einsatz ist dies eine relevante Einschränkung, die durch eine persistente Session-Speicherung adressiert werden müsste.
+Sessions werden ausschließlich im RAM gehalten und gehen bei Serverneustart verloren. Für den produktiven Einsatz ist dies eine relevante Einschränkung, die durch eine persistente Session-Speicherung adressiert werden müsste.
 
-    \item \textbf{\gls{crud}-Tests}: Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen wurde mit begrenzten Testdaten validiert. Ausführliche Tests mit größeren Datenmengen und konkurrierenden Zugriffen stehen noch aus.
+Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen wurde mit begrenzten Testdaten validiert. Ausführliche Tests mit größeren Datenmengen und konkurrierenden Zugriffen stehen noch aus. Ebenso wurde der OData-Adapter für SAP \gls{calm} nur konzeptionell beschrieben, nicht implementiert, weshalb der tatsächliche Aufwand für den Backend-Wechsel von der Schätzung abweichen kann.
 
-    \item \textbf{Konzeptioneller OData-Adapter}: Der OData-Adapter für SAP \gls{calm} wurde nur konzeptionell beschrieben, nicht implementiert. Der tatsächliche Aufwand für den Backend-Wechsel kann daher von der Schätzung abweichen.
-
-    \item \textbf{Performance unter Last}: Die Performance-Messungen erfolgten mit einzelnen sequentiellen Anfragen. Das Verhalten unter Last (mehrere gleichzeitige Benutzer) wurde nicht systematisch untersucht.
-\end{itemize}
+Schließlich erfolgten die Performance-Messungen mit einzelnen sequentiellen Anfragen. Das Verhalten unter Last mit mehreren gleichzeitigen Benutzern wurde nicht systematisch untersucht.
 
 Diese Einschränkungen beeinträchtigen nicht die Aussagekraft der Architekturentscheidungen, sind jedoch bei der Weiterentwicklung zu berücksichtigen.
 
@@ -62,27 +40,15 @@ Für die Weiterentwicklung der BC Middleware ergeben sich folgende Möglichkeite
 
 \subsubsection{Kurzfristig}
 
-\begin{itemize}
-    \item Umfangreiche Tests der \gls{crud}-Funktionalität
-    \item Aktivierung der SharePoint-Integration nach Erhalt der Berechtigungen
-    \item Performance-Optimierung durch Caching
-\end{itemize}
+Kurzfristig sollten umfangreiche Tests der \gls{crud}-Funktionalität durchgeführt, die SharePoint-Integration nach Erhalt der Berechtigungen aktiviert und die Performance durch Caching optimiert werden.
 
 \subsubsection{Mittelfristig}
 
-\begin{itemize}
-    \item Implementierung des OData-Adapters für SAP \gls{calm}
-    \item Persistierung der Sessions (z.B. in Redis)
-    \item Erweiterung um Historisierung von Änderungen
-\end{itemize}
+Mittelfristig steht die Implementierung des OData-Adapters für SAP \gls{calm} an, ergänzt durch die Persistierung der Sessions etwa über Redis sowie die Erweiterung um eine Historisierung von Änderungen.
 
 \subsubsection{Langfristig}
 
-\begin{itemize}
-    \item Vollständige Migration auf SAP \gls{calm} als Datenquelle
-    \item Integration mit SAP Analytics Cloud für Reporting
-    \item Erweiterung auf weitere Projektcontrolling-Funktionen
-\end{itemize}
+Langfristig ist eine vollständige Migration auf SAP \gls{calm} als Datenquelle denkbar, verbunden mit einer Integration in SAP Analytics Cloud für das Reporting und einer Erweiterung auf weitere Projektcontrolling-Funktionen.
 
 \subsection{Fazit}
 

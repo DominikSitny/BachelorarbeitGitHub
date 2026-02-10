@@ -36,13 +36,7 @@ Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwo
 \label{fig:architektur}
 \end{figure}
 
-\begin{enumerate}
-    \item \textbf{Präsentationsschicht}: Fiori Frontend (nicht Teil dieser Arbeit)
-    \item \textbf{API-Schicht}: \gls{odata} v4 Service (SAP \gls{cap})
-    \item \textbf{Service-Schicht}: Geschäftslogik und Berechnungen
-    \item \textbf{Adapter-Schicht}: Excel-Parser / OData-Connector
-    \item \textbf{Datenschicht}: SharePoint/Excel oder \gls{calm} Services
-\end{enumerate}
+Die oberste Schicht bildet die Präsentationsschicht mit dem Fiori Frontend, das nicht Teil dieser Arbeit ist. Darunter liegt die API-Schicht, die einen \gls{odata} v4 Service über SAP \gls{cap} bereitstellt. Die Service-Schicht kapselt die Geschäftslogik und Berechnungen, während die Adapter-Schicht den konkreten Datenzugriff über den Excel-Parser oder einen OData-Connector realisiert. Die unterste Ebene bildet die Datenschicht mit SharePoint/Excel oder \gls{calm} Services als Datenquellen.
 
 \subsection{Schichtenmodell}
 
@@ -52,13 +46,7 @@ Die API-Schicht wird mit SAP \gls{cap} implementiert und stellt eine \gls{odata}
 
 \subsubsection{Service-Schicht}
 
-Die Service-Schicht kapselt die Geschäftslogik:
-\begin{itemize}
-    \item Berechnung der Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac})
-    \item Aggregation pro Team und pro \gls{psp}
-    \item Validierung von \gls{psp}-Zuordnungen
-    \item Generierung von Warnungen bei Team-Mismatches
-\end{itemize}
+Die Service-Schicht kapselt die Geschäftslogik. Dazu gehören die Berechnung der Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}), die Aggregation pro Team und pro \gls{psp}, die Validierung von \gls{psp}-Zuordnungen sowie die Generierung von Warnungen bei Team-Mismatches.
 
 \subsubsection{Adapter-Schicht}
 
@@ -114,23 +102,11 @@ interface DataAdapter {
 
 \subsubsection{Excel-Adapter}
 
-Der Excel-Adapter liest Daten aus der \texttt{Budgetcontrolling.xlsx} und schreibt Änderungen zurück:
-
-\begin{itemize}
-    \item Parsen der verschiedenen Sheets
-    \item Mapping auf das einheitliche Datenmodell
-    \item Write-Back für \gls{psp}-Zuordnungen
-\end{itemize}
+Der Excel-Adapter liest Daten aus der \texttt{Budgetcontrolling.xlsx} und schreibt Änderungen zurück. Er ist verantwortlich für das Parsen der verschiedenen Sheets, das Mapping auf das einheitliche Datenmodell sowie den Write-Back für \gls{psp}-Zuordnungen.
 
 \subsubsection{OData-Adapter (konzeptionell)}
 
-Der OData-Adapter würde Daten von SAP \gls{calm} Services abrufen:
-
-\begin{itemize}
-    \item Authentifizierung via OAuth 2.0
-    \item Abruf von User Stories und Zeitbuchungen
-    \item Mapping auf das einheitliche Datenmodell
-\end{itemize}
+Der OData-Adapter würde Daten von SAP \gls{calm} Services abrufen. Dies umfasst die Authentifizierung via OAuth 2.0, den Abruf von User Stories und Zeitbuchungen sowie das Mapping auf das einheitliche Datenmodell.
 
 \subsection{Session-Management}
 
@@ -299,13 +275,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
 
 \textbf{Entscheidung}: Die Middleware verwendet keine eigene Datenbank, sondern liest Daten bei jedem Request direkt aus der Excel-Datei.
 
-\textbf{Begründung}:
-\begin{itemize}
-    \item Excel bleibt \enquote{Single Source of Truth}
-    \item Keine Synchronisationsprobleme zwischen DB und Excel
-    \item Einfacheres Deployment (keine DB-Bindung auf BTP nötig)
-    \item Konsistenz mit bestehendem Workflow der Anwender
-\end{itemize}
+\textbf{Begründung}: Excel bleibt als \enquote{Single Source of Truth} erhalten, wodurch keine Synchronisationsprobleme zwischen einer Datenbank und Excel entstehen. Zudem vereinfacht sich das Deployment, da keine DB-Bindung auf der BTP erforderlich ist, und die Konsistenz mit dem bestehenden Workflow der Anwender bleibt gewahrt.
 
 \textbf{Trade-off}: Höhere Latenz bei jedem Request, da Excel geparst werden muss. Für die erwartete Nutzerzahl (< 50 gleichzeitig) akzeptabel.
 
@@ -313,12 +283,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
 
 \textbf{Entscheidung}: Sessions werden im Arbeitsspeicher des Servers gehalten, nicht persistiert.
 
-\textbf{Begründung}:
-\begin{itemize}
-    \item Einfache Implementierung
-    \item Keine zusätzliche Infrastruktur (Redis, DB) erforderlich
-    \item Sessions sind kurzlebig (Arbeitstag)
-\end{itemize}
+\textbf{Begründung}: Die Implementierung ist einfach, es wird keine zusätzliche Infrastruktur wie Redis oder eine Datenbank benötigt, und Sessions sind kurzlebig (Arbeitstag).
 
 \textbf{Trade-off}: Bei Server-Neustart gehen Sessions verloren. Benutzer müssen sich neu einloggen. Dieses Problem ist in verteilten Systemen bekannt und kann durch externe Session-Speicher wie Redis gelöst werden \citep{tanenbaum2017, richardson2018}. Für einen Prototyp ist die In-Memory-Lösung akzeptabel.
 
@@ -326,13 +291,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
 
 \textbf{Entscheidung}: Die API wird als OData v4 Service implementiert, nicht als GraphQL.
 
-\textbf{Begründung}:
-\begin{itemize}
-    \item SAP-Ökosystem ist auf OData ausgerichtet
-    \item SAP Fiori erwartet OData-Services
-    \item SAP CAP generiert OData automatisch aus CDS
-    \item Keine zusätzlichen Abhängigkeiten
-\end{itemize}
+\textbf{Begründung}: Das SAP-Ökosystem ist auf OData ausgerichtet und SAP Fiori erwartet OData-Services. SAP CAP generiert OData automatisch aus CDS-Definitionen, sodass keine zusätzlichen Abhängigkeiten entstehen.
 
 \textbf{Trade-off}: GraphQL bietet zwar flexiblere Abfragemöglichkeiten und reduziert Over-/Underfetching \citep{brito2019}, jedoch überwiegen im SAP-Kontext die Vorteile der nativen OData-Unterstützung. Studien zeigen, dass die Migration zu GraphQL erheblichen Aufwand erfordert, während OData im Enterprise-Umfeld etabliert ist \citep{vogel2018}.
 
@@ -340,12 +299,7 @@ Im Folgenden werden zentrale Designentscheidungen dokumentiert und begründet \c
 
 \textbf{Entscheidung}: Das Adapter-Pattern wird zur Abstraktion der Datenquellen verwendet.
 
-\textbf{Begründung}:
-\begin{itemize}
-    \item Adapter übersetzt zwischen inkompatiblen Schnittstellen (Excel $\leftrightarrow$ OData)
-    \item Klare Verantwortlichkeit: Datenquelle $\rightarrow$ einheitliches Modell
-    \item Strategy-Pattern wäre bei austauschbaren Algorithmen passender \citep{gamma1994}
-\end{itemize}
+\textbf{Begründung}: Der Adapter übersetzt zwischen inkompatiblen Schnittstellen (Excel und OData) und hat eine klare Verantwortlichkeit: die Transformation von der spezifischen Datenquelle in ein einheitliches Modell. Das Strategy-Pattern wäre hingegen bei austauschbaren Algorithmen passender und adressiert eine andere Problemstellung \citep{gamma1994}.
 
 \subsection{Fehlerbehandlung}
 

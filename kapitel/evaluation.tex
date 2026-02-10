@@ -4,16 +4,7 @@ In diesem Kapitel wird die entwickelte Middleware evaluiert und die beiden Backe
 
 \subsection{Vergleichskriterien}
 
-Für den Vergleich der Backend-Ansätze werden die folgenden Kriterien herangezogen:
-
-\begin{enumerate}
-    \item \textbf{Implementierungsaufwand}: Aufwand für die initiale Entwicklung
-    \item \textbf{Wartbarkeit}: Aufwand für Änderungen und Fehlerbehebung
-    \item \textbf{Erweiterbarkeit}: Aufwand für neue Features
-    \item \textbf{Performance}: Antwortzeiten und Durchsatz
-    \item \textbf{Datenkonsistenz}: Zuverlässigkeit der Daten
-    \item \textbf{Austauschbarkeit}: Aufwand für den Backend-Wechsel
-\end{enumerate}
+Für den Vergleich der Backend-Ansätze werden sechs Kriterien herangezogen: der Implementierungsaufwand für die initiale Entwicklung, die Wartbarkeit im Sinne des Aufwands für Änderungen und Fehlerbehebung, die Erweiterbarkeit bezüglich neuer Features, die Performance hinsichtlich Antwortzeiten und Durchsatz, die Datenkonsistenz als Maß für die Zuverlässigkeit der Daten sowie die Austauschbarkeit, also der Aufwand für den Backend-Wechsel.
 
 \subsection{Vergleich: Excel-Backend vs. OData-Services}
 
@@ -90,20 +81,11 @@ Die zentrale Forschungsfrage zielt auf die Austauschbarkeit des Backends ab. Die
 
 \subsubsection{Durch das Adapter-Pattern geschützte Komponenten}
 
-\begin{itemize}
-    \item \gls{cds} Service-Definition -- keine Änderung nötig
-    \item Budget-Berechnungslogik -- keine Änderung nötig
-    \item Session-Management -- keine Änderung nötig
-    \item \gls{api}-Dokumentation -- keine Änderung nötig
-\end{itemize}
+Durch das Adapter-Pattern bleiben zentrale Komponenten bei einem Backend-Wechsel unverändert: die \gls{cds} Service-Definition, die Budget-Berechnungslogik, das Session-Management sowie die \gls{api}-Dokumentation erfordern keine Anpassungen.
 
 \subsubsection{Bei Backend-Wechsel zu ändernde Komponenten}
 
-\begin{itemize}
-    \item Neuer OData-Adapter implementieren (analog zu Excel-Adapter)
-    \item Konfiguration der Service-Endpunkte
-    \item Authentifizierung anpassen (OAuth 2.0 für \gls{calm})
-\end{itemize}
+Bei einem Backend-Wechsel müssen hingegen ein neuer OData-Adapter analog zum bestehenden Excel-Adapter implementiert, die Service-Endpunkte konfiguriert und die Authentifizierung auf OAuth 2.0 für \gls{calm} angepasst werden.
 
 \subsubsection{Geschätzter Aufwand für Backend-Wechsel}
 
@@ -251,16 +233,14 @@ Eine SWOT-Analyse (Strengths, Weaknesses, Opportunities, Threats) ist ein etabli
 
 \subsection{Lessons Learned}
 
-Aus der Implementierung und dem Betrieb der Middleware ergeben sich folgende Erkenntnisse:
+Aus der Implementierung und dem Betrieb der Middleware ergeben sich mehrere Erkenntnisse.
 
-\begin{enumerate}
-    \item \textbf{Adapter-Pattern bewährt sich}: Die strikte Trennung zwischen Service- und Adapter-Schicht hat sich als praktikabel erwiesen. Änderungen am Excel-Format erforderten nur Anpassungen im Adapter, nicht in der Geschäftslogik. Dies bestätigt die Empfehlungen von \cite{gamma1994}.
+Das Adapter-Pattern hat sich bewährt: Die strikte Trennung zwischen Service- und Adapter-Schicht erwies sich als praktikabel. Änderungen am Excel-Format erforderten nur Anpassungen im Adapter, nicht in der Geschäftslogik, was die Empfehlungen von \cite{gamma1994} bestätigt.
 
-    \item \textbf{Excel-Schreiben komplexer als Lesen}: Das Zurückschreiben in Excel erfordert sorgfältige Handhabung des Formats. Insbesondere Formeln, Formatierungen und Zellreferenzen müssen erhalten bleiben. Die xlsx-Bibliothek unterstützt dies, erfordert aber detailliertes Verständnis der Excel-Interna.
+Das Schreiben in Excel erwies sich als deutlich komplexer als das Lesen. Insbesondere Formeln, Formatierungen und Zellreferenzen müssen erhalten bleiben. Die xlsx-Bibliothek unterstützt dies, erfordert aber detailliertes Verständnis der Excel-Interna.
 
-    \item \textbf{\gls{cds} beschleunigt Entwicklung}: Die deklarative Service-Definition reduziert Boilerplate-Code erheblich. OData-Konformität, Filterung und Paginierung werden automatisch bereitgestellt \citep{sap2024cap}.
+Die deklarative Service-Definition mit \gls{cds} beschleunigt die Entwicklung erheblich, da Boilerplate-Code reduziert wird und OData-Konformität, Filterung sowie Paginierung automatisch bereitgestellt werden \citep{sap2024cap}.
 
-    \item \textbf{Session-Management im RAM riskant}: Bei Serverneustart gehen Sessions verloren. Für den produktiven Einsatz wäre eine Persistierung (z.B. Redis, Datenbank) erforderlich \citep{richardson2018}.
+Das Session-Management im RAM birgt Risiken: Bei Serverneustart gehen Sessions verloren, weshalb für den produktiven Einsatz eine Persistierung etwa über Redis oder eine Datenbank erforderlich wäre \citep{richardson2018}.
 
-    \item \textbf{Middleware als Integrationsmuster}: Die Middleware fungiert als \enquote{Anti-Corruption Layer} \citep{vernon2013} und schützt das Frontend vor den Eigenheiten der Excel-Struktur. Dieses Muster ist auch aus den Enterprise Integration Patterns bekannt, wo es als \enquote{Message Translator} beschrieben wird \citep{hohpe2003}.
-\end{enumerate}
+Schließlich zeigt sich, dass die Middleware als Integrationsmuster fungiert -- konkret als \enquote{Anti-Corruption Layer} \citep{vernon2013}, der das Frontend vor den Eigenheiten der Excel-Struktur schützt. Dieses Muster ist auch aus den Enterprise Integration Patterns bekannt, wo es als \enquote{Message Translator} beschrieben wird \citep{hohpe2003}.

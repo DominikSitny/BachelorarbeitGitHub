@@ -213,13 +213,7 @@ Während der Implementierung traten mehrere Herausforderungen auf, welche im Fol
 
 \subsubsection{Excel-Formatierung beim Schreiben}
 
-Das Zurückschreiben in Excel-Dateien erwies sich als komplexer als ursprünglich angenommen. Die xlsx-Bibliothek unterstützt zwar das Schreiben, jedoch sind folgende Einschränkungen zu beachten:
-
-\begin{itemize}
-    \item Formeln in anderen Zellen werden nicht automatisch neu berechnet
-    \item Zellenformatierungen (Farben, Rahmen) müssen explizit erhalten werden
-    \item Die Power-Query-Verbindungen im Excel bleiben unberührt
-\end{itemize}
+Das Zurückschreiben in Excel-Dateien erwies sich als komplexer als ursprünglich angenommen. Die xlsx-Bibliothek unterstützt zwar das Schreiben, jedoch sind folgende Einschränkungen zu beachten: Formeln in anderen Zellen werden nicht automatisch neu berechnet, Zellenformatierungen wie Farben und Rahmen müssen explizit erhalten werden und die Power-Query-Verbindungen im Excel bleiben unberührt.
 
 \begin{lstlisting}[caption={Erhaltung der Zellenformatierung}, label={lst:excel-format}]
 function addRowPreserveFormat(sheet, rowIndex, values) {
@@ -244,13 +238,7 @@ function addRowPreserveFormat(sheet, rowIndex, values) {
 
 \subsubsection{CADO-Zeitbuchungen parsen}
 
-Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) weisen ein spezielles Format auf:
-
-\begin{itemize}
-    \item Deutsches Zahlenformat (Komma als Dezimaltrennzeichen)
-    \item Datumsformat DD.MM.YYYY
-    \item PSP-Elemente mit Suffix (z.B. \enquote{C72773-001.1})
-\end{itemize}
+Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) weisen ein spezielles Format auf: Das deutsche Zahlenformat verwendet das Komma als Dezimaltrennzeichen, Datumsangaben folgen dem Format DD.MM.YYYY und PSP-Elemente enthalten Suffixe (z.B. \enquote{C72773-001.1}), die normalisiert werden müssen.
 
 \begin{lstlisting}[caption={Parsing der CADO-Zeitbuchungen}, label={lst:cado-parse}]
 function parseCADORow(row) {
@@ -311,14 +299,7 @@ function requireSession(req) {
 
 \subsection{API-Dokumentation}
 
-Für die Frontend-Entwickler wurde eine interaktive API-Dokumentation erstellt, welche unter der Root-URL der Middleware erreichbar ist. Diese umfasst:
-
-\begin{itemize}
-    \item Übersicht aller Endpunkte mit Beschreibung
-    \item Request/Response-Beispiele für jeden Endpunkt
-    \item Erklärung der Session-Authentifizierung
-    \item OData Query-Optionen mit Beispielen
-\end{itemize}
+Für die Frontend-Entwickler wurde eine interaktive API-Dokumentation erstellt, welche unter der Root-URL der Middleware erreichbar ist. Diese umfasst eine Übersicht aller Endpunkte mit Beschreibung, Request/Response-Beispiele für jeden Endpunkt, eine Erklärung der Session-Authentifizierung sowie OData Query-Optionen mit Beispielen.
 
 \begin{figure}[H]
 \centering
@@ -406,14 +387,7 @@ describe('calculateBudgetByTeam', () => {
 });
 \end{lstlisting}
 
-Die Tests validieren unter anderem:
-\begin{itemize}
-    \item Korrekte Aggregation der Budget-Metriken (Budget PT, Actual PT, ETC, EAC)
-    \item Konvertierung von Stunden zu Personentagen (8h = 1 PT)
-    \item Auflösung von PSP-Suffixen (z.B. \enquote{C72773-001.1} $\rightarrow$ \enquote{C72773-001})
-    \item Session-Lifecycle und Timeout-Logik (8 Stunden)
-    \item Parsing deutscher Zahlenformate (Komma als Dezimaltrennzeichen)
-\end{itemize}
+Die Tests validieren unter anderem die korrekte Aggregation der Budget-Metriken (Budget PT, Actual PT, ETC, EAC), die Konvertierung von Stunden zu Personentagen (8h = 1 PT), die Auflösung von PSP-Suffixen (z.B. \enquote{C72773-001.1} $\rightarrow$ \enquote{C72773-001}), den Session-Lifecycle einschließlich der Timeout-Logik (8 Stunden) sowie das Parsing deutscher Zahlenformate mit dem Komma als Dezimaltrennzeichen.
 
 \subsubsection{Integrationstests}
 
