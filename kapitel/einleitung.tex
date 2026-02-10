@@ -12,7 +12,9 @@ Gleichzeitig stellt SAP mit dem \gls{calm} eine moderne Lösung für das Applica
 
 \subsection{Zielsetzung}
 
-Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}, welche heterogene Datenquellen -- aktuell Excel-Dateien auf SharePoint, perspektivisch \gls{odata}-Services -- hinter einer einheitlichen \gls{api} abstrahiert. Die Middleware soll Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen. Durch den Einsatz geeigneter Architekturmuster soll dabei die Austauschbarkeit des Backends gewährleistet werden, sodass ein schrittweiser Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen mit minimalem Aufwand möglich ist.
+Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}, welche heterogene Datenquellen -- aktuell Excel-Dateien auf SharePoint, perspektivisch \gls{odata}-Services -- hinter einer einheitlichen \gls{api} abstrahiert. Die Middleware soll Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen sowie \gls{crud}-Operationen für manuelle \gls{psp}-Zuordnungen bereitstellen. Durch den Einsatz geeigneter Architekturmuster -- insbesondere des Adapter-Patterns -- soll dabei die Austauschbarkeit des Backends gewährleistet werden, sodass ein schrittweiser Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen mit minimalem Aufwand möglich ist.
+
+Konkret soll die Arbeit folgende Ergebnisse liefern: eine deployed Middleware auf der SAP \gls{btp} mit \gls{odata} v4-konformer Schnittstelle, einen funktionsfähigen Excel-Adapter als Referenzimplementierung, eine konzeptionelle Beschreibung des OData-Adapters als Zielvariante sowie eine vergleichende Evaluation beider Ansätze.
 
 \subsection{Forschungsfrage}
 

@@ -4,13 +4,15 @@ In diesem Kapitel werden die theoretischen Grundlagen erläutert, die für das V
 
 \subsection{SAP Business Technology Platform}
 
-Die SAP \gls{btp} ist die zentrale Entwicklungs- und Integrationsplattform von SAP für Cloud-Anwendungen \citep{sap2024btp}. Sie vereint Datenbank-, Analyse-, Integrations- und Entwicklungsfunktionen in einer einheitlichen Umgebung. Die Plattform gliedert sich in vier zentrale Bereiche: Database \& Data Management (SAP HANA Cloud, Data Intelligence), Analytics (SAP Analytics Cloud, Embedded Analytics), Application Development \& Integration (CAP, Integration Suite, API Management) sowie Intelligent Technologies (AI, Machine Learning, IoT). Für die Entwicklung von Enterprise-Anwendungen stellt die BTP verschiedene Laufzeitumgebungen bereit, darunter Cloud Foundry, Kyma (Kubernetes-basiert) und ABAP Environment \citep{erl2013}.
+Die SAP \gls{btp} ist die zentrale Entwicklungs- und Integrationsplattform von SAP für Cloud-Anwendungen \citep{sap2024btp}. Sie vereint Datenbank-, Analyse-, Integrations- und Entwicklungsfunktionen in einer einheitlichen Umgebung und bildet damit die technologische Grundlage für die in dieser Arbeit entwickelte Middleware.
+
+Die Plattform gliedert sich in vier Bereiche: Database \& Data Management für Datenhaltung und -verarbeitung (SAP HANA Cloud), Analytics für Auswertungen und Dashboards (SAP Analytics Cloud), Application Development \& Integration für die Anwendungsentwicklung (CAP, Integration Suite) sowie Intelligent Technologies für KI- und IoT-Szenarien. Für die vorliegende Arbeit ist der Bereich Application Development relevant, da die Middleware als CAP-Anwendung auf der BTP entwickelt und betrieben wird. Die BTP stellt dafür verschiedene Laufzeitumgebungen bereit, darunter Cloud Foundry, Kyma (Kubernetes-basiert) und ABAP Environment \citep{erl2013}.
 
 \subsubsection{Cloud Foundry Environment}
 
 Cloud Foundry ist eine Open-Source-Platform-as-a-Service (PaaS), die SAP als primäre Laufzeitumgebung auf der BTP anbietet \citep{cloudfoundry2024}. Sie ermöglicht das Deployment von Anwendungen in verschiedenen Programmiersprachen (Node.js, Java, Python, Go) ohne manuelle Infrastrukturverwaltung.
 
-Die wesentlichen Konzepte von Cloud Foundry umfassen Organizations und Spaces als hierarchische Struktur zur Mandantentrennung und Umgebungsverwaltung (Dev, Test, Prod), Buildpacks zur automatischen Erkennung und Kompilierung der Anwendung basierend auf der Programmiersprache, Services als verwaltete Dienste (Datenbanken, Message Queues), die an Anwendungen gebunden werden, sowie Routes als URL-Mappings für den externen Zugriff auf Anwendungen.
+Cloud Foundry organisiert Anwendungen in einer hierarchischen Struktur aus Organizations und Spaces, die eine Trennung von Umgebungen (z.\,B. Entwicklung, Test, Produktion) ermöglicht. Das Deployment nutzt Buildpacks, die die Programmiersprache automatisch erkennen und die passende Laufzeitumgebung bereitstellen -- für die BC Middleware ist dies das \texttt{nodejs\_buildpack}. Verwaltete Services wie Datenbanken oder Message Queues können an Anwendungen gebunden werden, und Routes definieren die URL, unter der eine Anwendung extern erreichbar ist.
 
 Das Deployment erfolgt über das Cloud Foundry CLI mit dem Befehl \texttt{cf push}, welcher die Anwendung paketiert, einen Container erstellt und die Instanzen startet. Dieser Ansatz folgt dem \enquote{Cloud Native}-Paradigma, bei dem Anwendungen für die Cloud-Umgebung optimiert werden \citep{davis2019}.
 
@@ -26,7 +28,7 @@ Für diese Arbeit ist insbesondere der Implementation-Bereich relevant, da hier 
 
 Das \gls{cap} ist ein Framework für die Entwicklung von Enterprise-Anwendungen auf der SAP \gls{btp} \citep{sap2024cap}. Es basiert auf bewährten Open-Source-Technologien und bietet eine einheitliche Programmierabstraktion für verschiedene Datenbanken und Protokolle. Das Framework folgt dem Prinzip \enquote{Convention over Configuration} und reduziert Boilerplate-Code durch deklarative Definitionen.
 
-Die Kernprinzipien von CAP orientieren sich am Domain-Driven Design mit Fokus auf das Domänenmodell statt technischer Details \citep{evans2003}. Datenmodelle und Services werden deklarativ in CDS definiert statt in imperativem Code. Das Framework bietet integrierte Unterstützung für OData, REST und Authentifizierung und abstrahiert über verschiedene Datenbanken (SQLite, HANA, PostgreSQL) im Sinne einer polyglotten Persistenz.
+CAP orientiert sich am Domain-Driven Design \citep{evans2003}: Der Entwickler modelliert zunächst die Domänenkonzepte (Entitäten, Services, Beziehungen) deklarativ in \gls{cds}, und das Framework generiert daraus automatisch die technische Infrastruktur -- OData-Endpunkte, Datenbankschemas und Authentifizierung. Dieser deklarative Ansatz reduziert den Boilerplate-Code erheblich und ermöglicht es, sich auf die fachliche Logik zu konzentrieren. Darüber hinaus abstrahiert CAP über verschiedene Datenbanken (SQLite, HANA, PostgreSQL), sodass dieselbe Anwendung in unterschiedlichen Umgebungen betrieben werden kann.
 
 \subsubsection{Core Data Services}
 
@@ -46,7 +48,7 @@ service BudgetService @(path: '/api/budget') {
 }
 \end{lstlisting}
 
-Zentrale CDS-Konzepte sind Entities als Datenstrukturen mit Schlüsselfeldern und Attributen, Services zur Gruppierung von Entities, die als API exponiert werden, Functions für lesende Operationen (HTTP GET), Actions für schreibende Operationen (HTTP POST) sowie Annotations als Metadaten für UI, Validierung und Autorisierung.
+CDS definiert mehrere Konzepte, die in der Middleware Verwendung finden. Entities beschreiben Datenstrukturen mit Schlüsselfeldern und Attributen und bilden die Grundlage für die OData-Entitätsmengen. Services gruppieren mehrere Entities zu einer kohärenten \gls{api}, die unter einem gemeinsamen Pfad exponiert wird. Functions repräsentieren lesende Operationen ohne Seiteneffekte (HTTP GET), während Actions schreibende Operationen mit potentiellen Seiteneffekten abbilden (HTTP POST). Annotations ergänzen die Definitionen um Metadaten, etwa für UI-Rendering, Validierung oder Autorisierung.
 
 Die Annotation \texttt{@cds.persistence.skip} kennzeichnet Entitäten, die nicht in einer Datenbank persistiert werden, sondern zur Laufzeit aus anderen Quellen generiert werden -- ein zentrales Konzept für die BC Middleware.
 
@@ -143,11 +145,11 @@ Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Daten
 
 \subsubsection{Repository Pattern}
 
-Das Repository-Pattern abstrahiert den Datenzugriff und stellt eine einheitliche Schnittstelle für die Geschäftslogik bereit \citep{fowler2002}. Es fungiert als Vermittler zwischen der Domänenschicht und der Datenzugriffsschicht.
+Das Repository-Pattern abstrahiert den Datenzugriff und stellt eine einheitliche Schnittstelle für die Geschäftslogik bereit \citep{fowler2002}. Es fungiert als Vermittler zwischen der Domänenschicht und der Datenzugriffsschicht, indem es Methoden wie \texttt{findAll()}, \texttt{findById()} oder \texttt{save()} bereitstellt, hinter denen die konkrete Datenbeschaffung verborgen bleibt.
 
-Die Vorteile des Repository-Patterns liegen in der Entkopplung der Geschäftslogik von der konkreten Datenquelle, der verbesserten Testbarkeit durch ersetzbare Mock-Objekte, der Zentralisierung der Datenzugriffslogik an einer Stelle sowie der Austauschbarkeit der Implementierung, ohne die Geschäftslogik anpassen zu müssen.
+Der zentrale Vorteil besteht in der Entkopplung: Die Geschäftslogik arbeitet gegen eine abstrakte Schnittstelle und hat keine Kenntnis darüber, ob die Daten aus einer Datenbank, einer Datei oder einem externen Service stammen. Dies verbessert die Testbarkeit erheblich, da das Repository in Tests durch Mock-Objekte ersetzt werden kann, ohne die eigentliche Logik zu verändern. Gleichzeitig zentralisiert das Pattern die Datenzugriffslogik an einer Stelle, was Änderungen an der Datenquelle auf einen klar definierten Bereich begrenzt.
 
-In Kombination mit dem Adapter-Pattern ergibt sich eine Architektur, bei der das Repository die Adapter-Schnittstelle nutzt und die Service-Schicht nur mit dem Repository kommuniziert.
+In der BC Middleware wird das Repository-Pattern konzeptionell mit dem Adapter-Pattern kombiniert: Die \texttt{loadData()}-Funktion übernimmt die Rolle des Repositories und delegiert den tatsächlichen Datenzugriff an den jeweiligen Adapter. Die Service-Schicht ruft ausschließlich \texttt{loadData()} auf und erhält ein einheitliches Datenobjekt, unabhängig davon, ob der Excel-Adapter oder ein zukünftiger OData-Adapter die Daten liefert.
 
 \subsection{Microsoft Graph API}
 
