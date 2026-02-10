@@ -4,9 +4,9 @@ Dieses abschließende Kapitel fasst die Ergebnisse der Arbeit zusammen, beantwor
 
 \subsection{Zusammenfassung}
 
-Diese Bachelorarbeit hat den Entwurf und die Implementierung einer Middleware für Budget-Controlling im SAP-Umfeld dokumentiert. Die entwickelte BC Middleware erfüllt die gestellten Anforderungen: Es wurde eine einheitliche \gls{odata} v4-konforme \gls{api} bereitgestellt, über die Excel-Daten erfolgreich geparst und aggregiert werden. Die Budget-Metriken (Budget, Actual, \gls{etc}, \gls{eac}) werden korrekt berechnet und \gls{crud}-Operationen für \gls{psp}-Zuordnungen wurden implementiert. Die gewählte Architektur ermöglicht darüber hinaus den Austausch des Backends.
+Ausgangspunkt dieser Arbeit war ein Excel-basierter Workflow im Budget-Controlling, der unter fehlender Echtzeitfähigkeit, fehlender Programmierschnittstelle und mangelnder Konsistenzprüfung litt (vgl. Abschnitt~3.1.3). Ziel war der Entwurf und die Implementierung einer Middleware, die diese Probleme adressiert und gleichzeitig einen späteren Wechsel zu service-orientierten Backends ermöglicht.
 
-Die Middleware wurde erfolgreich auf der SAP \gls{btp} deployed und steht für die Integration mit dem Fiori-Frontend bereit.
+Die entwickelte BC Middleware löst die identifizierten Probleme durch eine OData v4-konforme \gls{api}, die auf SAP \gls{cap} basiert und sämtliche Budget-Daten über standardisierte Endpunkte bereitstellt. Die vier Metriken Budget, Actual, \gls{etc} und \gls{eac} werden zur Laufzeit aus den Excel-Daten berechnet und in zwei Aggregationsebenen (pro Team und pro \gls{psp}) angeboten. Der PSP-Override-Mechanismus stellt sicher, dass manuelle Zuordnungen über die \gls{api} sofort wirksam werden. Insgesamt wurden sechs von sieben funktionalen und alle fünf nicht-funktionalen Anforderungen vollständig erfüllt (vgl. Abschnitt~6.3). Die Middleware ist auf der SAP \gls{btp} deployed, durch 113 automatisierte Tests abgesichert und steht für die Integration mit dem Fiori-Frontend bereit.
 
 \subsection{Beantwortung der Forschungsfrage}
 
@@ -16,9 +16,15 @@ Die zentrale Forschungsfrage lautete:
 \textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 \end{quote}
 
-Es wird gezeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} eine solche Architektur realisierbar ist. Die Schlüsselelemente dieser Architektur sind ein einheitliches Datenmodell, das unabhängig von der Datenquelle intern verwendet wird, sowie eine Adapter-Schicht, die alle datenquellenspezifischen Details kapselt, sodass die Service-Schicht ausschließlich mit dem abstrakten Interface arbeitet. Die deklarative Service-Definition mit SAP \gls{cap} und \gls{cds} ermöglicht eine saubere Trennung zwischen \gls{api}-Definition und Implementierung. Schließlich werden die Budget-Metriken zur Laufzeit berechnet statt persistiert, was den Backend-Wechsel zusätzlich vereinfacht.
+Die Arbeit zeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} \citep{gamma1994} eine solche Architektur realisierbar ist. Die Antwort gliedert sich in drei Aspekte.
 
-Der geschätzte Aufwand für einen Wechsel von Excel zu \gls{odata}-Services besteht primär in der Implementierung eines neuen Adapters. Die Service-Schicht, \gls{api}-Definition und das Frontend bleiben unverändert.
+Erstens ermöglicht ein \textbf{einheitliches Datenmodell}, das in \gls{cds} deklarativ definiert wird, die Entkopplung der \gls{api}-Schnittstelle von der konkreten Datenquelle. Die Entitäten (\texttt{Teams}, \texttt{PSPElements}, \texttt{BudgetOverview} etc.) werden mit \texttt{@cds.persistence.skip} annotiert, sodass SAP \gls{cap} einen vollständigen OData-Service generiert, ohne eine Datenbank vorauszusetzen. Dieses Modell bleibt bei einem Backend-Wechsel unverändert.
+
+Zweitens kapselt die \textbf{Adapter-Schicht} alle datenquellenspezifischen Details hinter einer einheitlichen Schnittstelle. Der Excel-Adapter übersetzt die heterogenen Sheet-Formate der \texttt{Budgetcontrolling.xlsx} in das interne Datenmodell; ein zukünftiger OData-Adapter würde die gleiche Schnittstelle mit Daten aus SAP \gls{calm} bedienen. Die Service-Schicht, die Budget-Berechnungslogik und das Session-Management arbeiten ausschließlich mit dem abstrakten Interface und haben keine Kenntnis über die konkrete Datenquelle.
+
+Drittens vereinfacht die \textbf{Laufzeitberechnung} der Budget-Metriken den Backend-Wechsel zusätzlich: Da keine Daten persistiert werden, entfallen Migrationsprobleme. Die Metriken werden bei jedem Request aus den aktuell geladenen Daten berechnet, unabhängig von deren Herkunft.
+
+Der geschätzte Aufwand für einen vollständigen Wechsel von Excel zu OData-Services liegt bei 8--13 Personentagen (vgl. Tabelle~\ref{tab:aufwand}), wobei über 80\,\% der bestehenden Codebasis unverändert bleiben. Dies bestätigt die Wirksamkeit des gewählten Architekturansatzes.
 
 \subsection{Kritische Reflexion}
 
@@ -40,18 +46,18 @@ Für die Weiterentwicklung der BC Middleware ergeben sich folgende Möglichkeite
 
 \subsubsection{Kurzfristig}
 
-Kurzfristig sollten umfangreiche Tests der \gls{crud}-Funktionalität durchgeführt, die SharePoint-Integration nach Erhalt der Berechtigungen aktiviert und die Performance durch Caching optimiert werden.
+Kurzfristig sollten die \gls{crud}-Operationen für \gls{psp}-Zuordnungen umfangreich mit größeren Datenmengen und konkurrierenden Zugriffen getestet werden, da die bisherige Validierung auf begrenzten Testdaten basiert. Nach Erhalt der SharePoint-Berechtigungen kann die bestehende Microsoft-Graph-Integration aktiviert werden, sodass die Middleware die \texttt{Budgetcontrolling.xlsx} direkt von SharePoint lädt, anstatt auf lokale Kopien zurückzugreifen. Zusätzlich könnte ein zeitbasierter Cache die Performance verbessern, indem die Excel-Datei nicht bei jedem Request neu geparst wird, sondern erst nach einer konfigurierbaren Zeitspanne.
 
 \subsubsection{Mittelfristig}
 
-Mittelfristig steht die Implementierung des OData-Adapters für SAP \gls{calm} an, ergänzt durch die Persistierung der Sessions etwa über Redis sowie die Erweiterung um eine Historisierung von Änderungen.
+Mittelfristig steht die Implementierung des OData-Adapters für SAP \gls{calm} an, der die zentrale Architekturentscheidung dieser Arbeit validieren würde. Die geschätzten 8--13 Personentage (vgl. Tabelle~\ref{tab:aufwand}) könnten durch die bereits vorhandene Adapter-Schnittstelle und die unveränderte Service-Schicht realisiert werden. Ergänzend sollten die Sessions über einen externen Speicher wie Redis persistiert werden, um den Verlust bei Serverneustart zu vermeiden \citep{richardson2018}. Eine Historisierung von Änderungen an \gls{psp}-Zuordnungen würde die Nachvollziehbarkeit verbessern und das in der Problemanalyse (Abschnitt~3.1.3) identifizierte vierte Problem vollständig adressieren.
 
 \subsubsection{Langfristig}
 
-Langfristig ist eine vollständige Migration auf SAP \gls{calm} als Datenquelle denkbar, verbunden mit einer Integration in SAP Analytics Cloud für das Reporting und einer Erweiterung auf weitere Projektcontrolling-Funktionen.
+Langfristig ist eine vollständige Migration auf SAP \gls{calm} als alleinige Datenquelle denkbar, bei der der Excel-Adapter zugunsten des OData-Adapters entfernt wird. In diesem Szenario entfallen der PSP-Override-Mechanismus und die Write-Back-Funktionalität, da Änderungen direkt im Backend-System persistiert würden. Eine Integration mit SAP Analytics Cloud könnte das Reporting erweitern, und das Architekturmuster der Middleware ließe sich auf weitere Projektcontrolling-Funktionen oder andere Domänen übertragen.
 
 \subsection{Fazit}
 
-Die BC Middleware demonstriert, dass eine austauschbare Backend-Architektur im SAP-Umfeld praktikabel umsetzbar ist. Das Adapter-Pattern in Kombination mit SAP \gls{cap} bildet eine tragfähige Grundlage für die schrittweise Migration von Excel-basierten Lösungen zu service-orientierten Architekturen.
+Die BC Middleware demonstriert, dass eine austauschbare Backend-Architektur im SAP-Umfeld praktikabel umsetzbar ist. Das Adapter-Pattern in Kombination mit SAP \gls{cap} bildet eine tragfähige Grundlage für die schrittweise Migration von Excel-basierten Lösungen zu service-orientierten Architekturen. Die Tatsache, dass über 80\,\% der Codebasis bei einem Backend-Wechsel unverändert bleiben, belegt die Wirksamkeit dieses Ansatzes.
 
-Die Arbeit liefert damit einen Beitrag zur Frage, wie Unternehmen ihre bestehenden Excel-Workflows modernisieren können, ohne dabei einen abrupten Systemwechsel vollziehen zu müssen. Angesichts der in der Literatur dokumentierten Fehleranfälligkeit von Spreadsheet-Anwendungen \citep{powell2009, panko2016} und der wachsenden Bedeutung der digitalen Transformation \citep{westerman2014} ist dieser schrittweise Migrationsansatz von praktischer Relevanz für viele Unternehmen.
+Die Arbeit liefert damit einen Beitrag zur Frage, wie Unternehmen ihre bestehenden Excel-Workflows modernisieren können, ohne dabei einen abrupten Systemwechsel vollziehen zu müssen. Angesichts der in der Literatur dokumentierten Fehleranfälligkeit von Spreadsheet-Anwendungen \citep{powell2009, panko2016} und der wachsenden Bedeutung der digitalen Transformation \citep{westerman2014} ist dieser schrittweise Migrationsansatz -- im Sinne des Strangler-Fig-Prinzips \citep{newman2021} -- von praktischer Relevanz für viele Unternehmen, die sich in vergleichbaren Migrationssituationen befinden.
