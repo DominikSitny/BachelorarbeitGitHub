@@ -6,12 +6,13 @@
 \begin{table}[H]
 \centering
 \small
-\begin{tabularx}{\textwidth}{llX}
+\begin{tabularx}{\textwidth}{ll>{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Methode} & \textbf{Endpunkt} & \textbf{Beschreibung} \\
 \midrule
 GET & /getProjects() & Liste verfügbarer Projekte \\
 POST & /startSession & Session starten mit Projekt \\
+GET & /getSessionInfo() & Aktuelle Session-Informationen \\
 GET & /Teams & Alle Projekt-Teams \\
 GET & /Timeboxes & Projektphasen \\
 GET & /PSPElements & PSP-Elemente mit Budget \\
@@ -19,7 +20,12 @@ GET & /UserStories & User Stories mit PSP-Zuordnung \\
 GET & /BudgetOverview & Budget-Metriken pro Team \\
 GET & /BudgetOverviewByPSP & Budget-Metriken pro PSP \\
 GET & /PSPAssignments & Manuelle PSP-Zuordnungen \\
+GET & /TimeboxAssignments & Fallback-Zuordnungen (Team $\rightarrow$ Timebox) \\
+GET & /InitialPlans & Initiale Planung (UserStory $\rightarrow$ PT) \\
 GET & /TimeBookings & Zeitbuchungen aus CADO \\
+GET & /UserStoriesOhnePlan & Prüfliste: Stories ohne Plan \\
+GET & /UserStoriesOhnePSP & Prüfliste: Stories ohne PSP \\
+GET & /getTeamMismatchWarnings() & Team-Mismatch Warnungen \\
 POST & /createPSPAssignment & PSP-Zuordnung erstellen \\
 POST & /updatePSPAssignment & PSP-Zuordnung ändern \\
 POST & /deletePSPAssignment & PSP-Zuordnung löschen \\
@@ -33,7 +39,7 @@ POST & /deletePSPAssignment & PSP-Zuordnung löschen \\
 \begin{table}[H]
 \centering
 \small
-\begin{tabularx}{\textwidth}{lXl}
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xl}
 \toprule
 \textbf{Sheet} & \textbf{Inhalt} & \textbf{Zugriff} \\
 \midrule

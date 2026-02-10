@@ -203,7 +203,7 @@ Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der 
     note/.style={font=\tiny, align=left}
 ]
     % Akteure
-    \node[actor] (client) at (0,0) {Frontend};
+    \node[actor] (client) at (0,0) {Client};
     \node[actor] (api) at (4,0) {API-Schicht};
     \node[actor] (service) at (8,0) {Service};
     \node[actor] (adapter) at (12,0) {Adapter};
@@ -241,7 +241,7 @@ Die folgenden Sequenzdiagramme veranschaulichen die wichtigsten Abläufe in der 
     arrow/.style={->, >=stealth, thick}
 ]
     % Akteure
-    \node[actor] (client) at (0,0) {Frontend};
+    \node[actor] (client) at (0,0) {Client};
     \node[actor] (api) at (4,0) {API-Schicht};
     \node[actor] (service) at (8,0) {Service};
     \node[actor] (adapter) at (12,0) {Adapter};
@@ -313,8 +313,7 @@ Die Middleware implementiert eine einheitliche Fehlerbehandlung für alle API-En
 \toprule
 \textbf{Code} & \textbf{Bedeutung} & \textbf{Szenario} \\
 \midrule
-200 & OK & Erfolgreiche Anfrage \\
-201 & Created & PSP-Zuordnung erfolgreich erstellt \\
+200 & OK & Erfolgreiche Anfrage (inkl. PSP-Zuordnung erstellt) \\
 400 & Bad Request & Ungültige Parameter (z.B. fehlende User Story) \\
 401 & Unauthorized & Keine oder ungültige Session-ID \\
 404 & Not Found & Projekt oder Ressource existiert nicht \\

@@ -13,9 +13,13 @@ bc_middleware/
     budget-service.js     # Service Implementation
     index.html            # API-Dokumentation
     lib/
-      excel-parser.js     # Excel Adapter
-      ms-auth.js          # Microsoft Graph Auth
-      sharepoint.js       # SharePoint Integration
+      budget-calculations.js  # Budget-Metriken Berechnung
+      excel-parser.js         # Excel Adapter
+      ms-auth.js              # Microsoft Graph Auth
+      sharepoint.js           # SharePoint Integration
+  test/
+    unit/                     # Unit-Tests (Jest)
+    integration/              # Integrationstests
   excel_templates/
     Projekt_1/
       Budgetcontrolling.xlsx
@@ -66,16 +70,22 @@ Der Excel-Adapter ist das Herzstück der aktuellen Backend-Implementierung. Er n
 \subsubsection{Datenextraktion}
 
 \begin{lstlisting}[caption={Excel-Parser Hauptfunktion}, label={lst:excel-parser}]
-function loadNewStructure(excelPath) {
-    const workbook = XLSX.readFile(excelPath);
+function loadNewStructure(basePath, project) {
+    const budgetPath = path.join(basePath, project,
+        'Budgetcontrolling.xlsx');
+    const budgetData = parseBudgetcontrolling(budgetPath);
+
+    // PSP-Overrides aus "1. PSP-Zuordnung" anwenden
+    const userStories = applyPSPOverrides(
+        budgetData.userStories,
+        budgetData.pspZuordnungUserStory
+    );
 
     return {
-        teams: parseTeams(workbook),
-        timeboxes: parseTimeboxes(workbook),
-        pspElements: parsePSPElements(workbook),
-        userStories: parseUserStories(workbook),
-        timeBookings: parseCADO(workbook),
-        pspZuordnungen: parsePSPZuordnung(workbook),
+        teams: budgetData.prueftabellen.teams,
+        pspElemente: budgetData.pspElemente,
+        userStories: userStories,
+        timeBookings: budgetData.timeBookings,
         // ... weitere Daten
     };
 }
@@ -87,15 +97,16 @@ Jedes Sheet wird individuell geparst und auf das einheitliche Datenmodell gemapp
 
 \begin{lstlisting}[caption={Parsing der PSP-Elemente}, label={lst:parse-psp}]
 function parsePSPElements(workbook) {
-    const sheet = workbook.Sheets['PSP-Elemente'];
-    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const data = XLSX.utils.sheet_to_json(
+        workbook.Sheets['PSP-Elemente']
+    );
 
-    return data.slice(1).map(row => ({
-        psp: row[0]?.toString() || '',
-        name: row[1]?.toString() || '',
-        pspElement: row[2]?.toString() || '',
-        team: row[3]?.toString() || '',
-        budgetPT: parseFloat(row[4]) || 0
+    return data.map(row => ({
+        psp: row['PSP'] || '',
+        name: row['Name'] || '',
+        pspElement: row['PSP-Element'] || '',
+        team: row['Team'] || '',
+        budgetPT: parseFloat(row['Budget [PT]']) || 0
     }));
 }
 \end{lstlisting}
@@ -105,20 +116,30 @@ function parsePSPElements(workbook) {
 \gls{crud}-Operationen für \gls{psp}-Zuordnungen werden direkt in die Excel-Datei geschrieben:
 
 \begin{lstlisting}[caption={PSP-Zuordnung hinzufügen}, label={lst:add-assignment}]
-function addPSPAssignment(excelPath, assignment) {
-    const workbook = XLSX.readFile(excelPath);
+function addPSPAssignment(filePath, assignment) {
+    const workbook = XLSX.readFile(filePath);
     const sheet = workbook.Sheets['1. PSP-Zuordnung'];
+    const data = XLSX.utils.sheet_to_json(sheet);
 
-    // Letzte Zeile finden und neue Zeile hinzufuegen
-    const range = XLSX.utils.decode_range(sheet['!ref']);
-    const newRow = range.e.r + 1;
+    // Duplikat pruefen
+    const exists = data.some(row =>
+        row['User-Story'] === assignment.userStory &&
+        row['PSP'] === assignment.psp
+    );
+    if (exists) throw new Error('Zuordnung existiert bereits');
 
-    // Werte schreiben
-    sheet[XLSX.utils.encode_cell({r: newRow, c: 0})] =
-        { t: 's', v: assignment.userStory };
-    // ... weitere Spalten
+    // Neue Zeile hinzufuegen
+    data.push({
+        'User-Story': assignment.userStory,
+        'PSP': assignment.psp,
+        'Team User-Story': assignment.teamUserStory,
+        'Team PSP': assignment.teamPSP
+    });
 
-    XLSX.writeFile(workbook, excelPath);
+    // Sheet neu schreiben und speichern
+    workbook.Sheets['1. PSP-Zuordnung'] =
+        XLSX.utils.json_to_sheet(data);
+    XLSX.writeFile(workbook, filePath);
 }
 \end{lstlisting}
 
@@ -169,19 +190,21 @@ function calculateEtcByTeam(userStories) {
 Sessions werden im Arbeitsspeicher des Servers verwaltet:
 
 \begin{lstlisting}[caption={Session-Verwaltung}, label={lst:session-mgmt}]
-const sessions = {};
+const sessions = new Map();
 
-function createSession(project) {
-    const sessionId = crypto.randomUUID();
-    sessions[sessionId] = {
+function startSession(project) {
+    const sessionId = Math.random().toString(36).substring(2)
+        + Date.now().toString(36);
+    sessions.set(sessionId, {
         project,
         createdAt: new Date().toISOString()
-    };
+    });
     return sessionId;
 }
 
 function getSession(sessionId) {
-    return sessions[sessionId] || null;
+    return sessions.has(sessionId)
+        ? sessions.get(sessionId) : null;
 }
 \end{lstlisting}
 
@@ -215,85 +238,76 @@ Während der Implementierung traten mehrere Herausforderungen auf, welche im Fol
 
 Das Zurückschreiben in Excel-Dateien erwies sich als komplexer als ursprünglich angenommen. Die xlsx-Bibliothek unterstützt zwar das Schreiben, jedoch sind folgende Einschränkungen zu beachten: Formeln in anderen Zellen werden nicht automatisch neu berechnet, Zellenformatierungen wie Farben und Rahmen müssen explizit erhalten werden und die Power-Query-Verbindungen im Excel bleiben unberührt.
 
-\begin{lstlisting}[caption={Erhaltung der Zellenformatierung}, label={lst:excel-format}]
-function addRowPreserveFormat(sheet, rowIndex, values) {
-    values.forEach((value, colIndex) => {
-        const cellRef = XLSX.utils.encode_cell({
-            r: rowIndex, c: colIndex
-        });
-
-        // Vorhandene Formatierung der darueberliegenden Zeile kopieren
-        const templateRef = XLSX.utils.encode_cell({
-            r: rowIndex - 1, c: colIndex
-        });
-
-        sheet[cellRef] = {
-            t: typeof value === 'number' ? 'n' : 's',
-            v: value,
-            s: sheet[templateRef]?.s  // Style kopieren
-        };
-    });
-}
-\end{lstlisting}
+Anstatt einzelne Zellen zu manipulieren und dabei die Formatierung zu erhalten, wurde ein pragmatischerer Ansatz gewählt: Das betroffene Sheet wird mit \texttt{json\_to\_sheet} vollständig neu geschrieben (vgl. Auflistung~\ref{lst:add-assignment}). Dieser Ansatz ist robuster, da er keine Abhängigkeit von der bestehenden Zellstruktur hat, jedoch geht die Formatierung des \enquote{1. PSP-Zuordnung}-Sheets dabei verloren -- ein akzeptabler Trade-off, da dieses Sheet primär maschinell verarbeitet wird.
 
 \subsubsection{CADO-Zeitbuchungen parsen}
 
-Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) weisen ein spezielles Format auf: Das deutsche Zahlenformat verwendet das Komma als Dezimaltrennzeichen, Datumsangaben folgen dem Format DD.MM.YYYY und PSP-Elemente enthalten Suffixe (z.B. \enquote{C72773-001.1}), die normalisiert werden müssen.
+Die Zeitbuchungen aus dem SAP-Export (CADO-Sheet) weisen ein spezielles Format auf: Das deutsche Zahlenformat verwendet das Komma als Dezimaltrennzeichen und Datumsangaben folgen dem Format DD.MM.YYYY. Zudem enthalten die PSP-Elemente Suffixe (z.\,B. \enquote{C72773-001.1}), die bei der Budget-Berechnung auf den Basis-PSP (z.\,B. \enquote{C72773-001}) aufgelöst werden müssen, um eine korrekte Zuordnung zu den PSP-Elementen zu ermöglichen.
 
 \begin{lstlisting}[caption={Parsing der CADO-Zeitbuchungen}, label={lst:cado-parse}]
-function parseCADORow(row) {
-    // Deutsches Zahlenformat: "2,500" -> 2.5
-    const parseGermanNumber = (str) => {
-        if (!str) return 0;
-        return parseFloat(str.toString()
-            .replace(/\./g, '')      // Tausendertrennzeichen entfernen
-            .replace(',', '.'));     // Komma durch Punkt ersetzen
-    };
+function parseCADO(workbook) {
+    const sheet = workbook.Sheets['CADO'];
+    const rawData = XLSX.utils.sheet_to_json(sheet,
+        { header: 1 });
+    const timeBookings = [];
 
-    // PSP normalisieren: "C72773-001.1" -> "C72773-001"
-    const normalizePSP = (psp) => {
-        if (!psp) return '';
-        return psp.toString().split('.')[0];
-    };
+    // Daten starten ab Zeile 6 (Index 5)
+    for (let i = 5; i < rawData.length; i++) {
+        const row = rawData[i];
+        if (!row || row.length < 8) continue;
 
-    return {
-        belegnummer: row[3]?.toString() || '',
-        leistungsart: row[4]?.toString() || '',
-        datum: parseGermanDate(row[5]),
-        stunden: parseGermanNumber(row[6]),
-        psp: normalizePSP(row[8])
-    };
+        const belegnummer = String(row[2] || '').trim();
+        // Nur Zeilen mit gueltiger Belegnummer
+        if (!/^\d{8}$/.test(belegnummer)) continue;
+
+        // Deutsches Zahlenformat: "2,500" -> 2.5
+        const anzahl = parseFloat(
+            String(row[5] || '').replace(',', '.')
+        ) || 0;
+
+        timeBookings.push({
+            belegnummer,
+            leistungsart: String(row[3] || ''),
+            datum: String(row[4] || ''),
+            anzahl,
+            pspElement: String(row[7] || '').trim()
+        });
+    }
+    return timeBookings;
 }
 \end{lstlisting}
 
 \subsubsection{Session-Validierung in jedem Request}
 
-Jeder API-Request (mit Ausnahme von \texttt{getProjects} und \texttt{startSession}) erfordert eine Session-Validierung. Diese wurde als Middleware-Funktion implementiert:
+Jeder API-Request (mit Ausnahme von \texttt{getProjects} und \texttt{startSession}) erfordert eine Session-Validierung. Diese wird vor der eigentlichen Handler-Logik geprüft:
 
-\begin{lstlisting}[caption={Session-Validierung Middleware}, label={lst:session-validation}]
+\begin{lstlisting}[caption={Session-Validierung}, label={lst:session-validation}]
+function getSessionFromRequest(req) {
+    const sessionId = req.headers?.['x-session-id']
+        || req._.req?.headers?.['x-session-id'];
+
+    if (sessionId && sessions.has(sessionId)) {
+        const session = sessions.get(sessionId);
+
+        // Session-Timeout pruefen (8 Stunden)
+        const age = Date.now()
+            - new Date(session.createdAt).getTime();
+        if (age > 8 * 60 * 60 * 1000) {
+            sessions.delete(sessionId);
+            return null;
+        }
+        return session;
+    }
+    return null;
+}
+
 function requireSession(req) {
-    const sessionId = req.headers['x-session-id'];
-
-    if (!sessionId) {
-        req.reject(401, 'Keine Session-ID. Header x-session-id fehlt.');
+    const project = getProjectFromRequest(req);
+    if (!project) {
+        req.error(401, 'Keine aktive Session.');
         return null;
     }
-
-    const session = sessions[sessionId];
-    if (!session) {
-        req.reject(401, 'Ungueltige Session-ID. Bitte neu anmelden.');
-        return null;
-    }
-
-    // Session-Timeout pruefen (8 Stunden)
-    const age = Date.now() - new Date(session.createdAt).getTime();
-    if (age > 8 * 60 * 60 * 1000) {
-        delete sessions[sessionId];
-        req.reject(401, 'Session abgelaufen. Bitte neu anmelden.');
-        return null;
-    }
-
-    return session;
+    return project;
 }
 \end{lstlisting}
 
@@ -330,7 +344,7 @@ Für Entwicklung und Test wurde ein Beispielprojekt \enquote{Projekt\_1} mit fol
 \toprule
 \textbf{Entität} & \textbf{Anzahl} & \textbf{Quelle} \\
 \midrule
-Teams & 14 & Prüftabellen-Sheet \\
+Teams & 23 & Prüftabellen-Sheet \\
 Timeboxes & 5 & Prüftabellen-Sheet \\
 PSP-Elemente & 113 & PSP-Elemente-Sheet \\
 User Stories & 251 & qry\_CALM\_Data-Sheet \\
