@@ -131,7 +131,7 @@ Das Adapter-Pattern ist ein strukturelles Entwurfsmuster, das die Zusammenarbeit
     \node[box] (client) at (0,0) {Service-Schicht\\(Client)};
     \node[box] (interface) at (5,0) {DataAdapter\\(Interface)};
     \node[box] (excel) at (10,1) {ExcelAdapter};
-    \node[box] (odata) at (10,-1) {ODataAdapter};
+    \node[box] (odata) at (10,-1) {SAPAdapter};
 
     \draw[arrow] (client) -- (interface);
     \draw[arrow] (interface) -- (excel);
@@ -141,7 +141,7 @@ Das Adapter-Pattern ist ein strukturelles Entwurfsmuster, das die Zusammenarbeit
 \label{fig:adapter-pattern}
 \end{figure}
 
-Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Datenquelle (Excel vs. OData-Service), ohne dass die darüberliegende Service-Schicht angepasst werden muss (siehe Abbildung~\ref{fig:adapter-pattern}). Der Adapter übersetzt die spezifische Schnittstelle der Datenquelle (Excel-Datei, REST-API) in ein einheitliches internes Datenmodell.
+Im Kontext dieser Arbeit ermöglicht das Adapter-Pattern den Austausch der Datenquelle (Excel vs. direkte SAP-Anbindung), ohne dass die darüberliegende Service-Schicht angepasst werden muss (siehe Abbildung~\ref{fig:adapter-pattern}). Der Adapter übersetzt die spezifische Schnittstelle der Datenquelle (Excel-Datei, SAP-APIs) in ein einheitliches internes Datenmodell.
 
 \subsubsection{Repository Pattern}
 
@@ -149,7 +149,7 @@ Das Repository-Pattern abstrahiert den Datenzugriff und stellt eine einheitliche
 
 Der zentrale Vorteil besteht in der Entkopplung: Die Geschäftslogik arbeitet gegen eine abstrakte Schnittstelle und hat keine Kenntnis darüber, ob die Daten aus einer Datenbank, einer Datei oder einem externen Service stammen. Dies verbessert die Testbarkeit erheblich, da das Repository in Tests durch Mock-Objekte ersetzt werden kann, ohne die eigentliche Logik zu verändern. Gleichzeitig zentralisiert das Pattern die Datenzugriffslogik an einer Stelle, was Änderungen an der Datenquelle auf einen klar definierten Bereich begrenzt.
 
-In der BC Middleware wird das Repository-Pattern konzeptionell mit dem Adapter-Pattern kombiniert: Die \texttt{loadData()}-Funktion übernimmt die Rolle des Repositories und delegiert den tatsächlichen Datenzugriff an den jeweiligen Adapter. Die Service-Schicht ruft ausschließlich \texttt{loadData()} auf und erhält ein einheitliches Datenobjekt, unabhängig davon, ob der Excel-Adapter oder ein zukünftiger OData-Adapter die Daten liefert.
+In der BC Middleware wird das Repository-Pattern konzeptionell mit dem Adapter-Pattern kombiniert: Die \texttt{loadData()}-Funktion übernimmt die Rolle des Repositories und delegiert den tatsächlichen Datenzugriff an den jeweiligen Adapter. Die Service-Schicht ruft ausschließlich \texttt{loadData()} auf und erhält ein einheitliches Datenobjekt, unabhängig davon, ob der Excel-Adapter oder ein zukünftiger SAP-Adapter die Daten liefert.
 
 \subsection{Microsoft Graph API}
 

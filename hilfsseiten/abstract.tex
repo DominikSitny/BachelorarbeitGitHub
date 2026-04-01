@@ -2,11 +2,11 @@
 
 \textbf{Hintergrund:} Die digitale Transformation erfordert die Integration bestehender Excel-basierter Workflows in moderne Systemlandschaften. Im Bereich des Budget-Controllings stellt sich die Frage, wie ein schrittweiser Übergang zu service-orientierten Architekturen ermöglicht werden kann, ohne bestehende Prozesse abrupt zu unterbrechen.
 
-\textbf{Forschungsfrage:} \textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
+\textbf{Forschungsfrage:} \textit{Wie kann eine Cloud-Middleware zur Abstraktion austauschbarer Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 
 \textbf{Methodik:} Zur Beantwortung dieser Frage wurde eine Middleware auf Basis des SAP Cloud Application Programming Model (CAP) auf der SAP Business Technology Platform (BTP) entwickelt. Die Architektur implementiert das Adapter-Pattern, um die Datenquellen austauschbar zu gestalten. Die Middleware aggregiert Daten aus einer Excel-Datei, berechnet Budget-Metriken (Budget, Actual, ETC, EAC) und stellt diese über eine OData v4-konforme API bereit.
 
-\textbf{Ergebnisse:} Die Evaluation zeigt, dass alle funktionalen Anforderungen erfüllt wurden. Der geschätzte Aufwand für einen Backend-Wechsel zu SAP Cloud ALM beträgt 8--13 Personentage, wobei die Service-Schicht, API-Definitionen und das Frontend unverändert bleiben. Die Antwortzeiten der API liegen im Bereich von 150--900\,ms je nach Datenmenge.
+\textbf{Ergebnisse:} Die Evaluation zeigt, dass alle funktionalen Anforderungen erfüllt wurden. Der geschätzte Aufwand für einen Backend-Wechsel zur direkten SAP-Anbindung (SAP Cloud ALM für User Stories, SAP S/4HANA für Zeitbuchungen) beträgt 8--13 Personentage, wobei die Service-Schicht, API-Definitionen und das Frontend unverändert bleiben. Die Antwortzeiten der API liegen im Bereich von 150--900\,ms je nach Datenmenge.
 
 \textbf{Schlussfolgerung:} Durch konsequente Anwendung des Adapter-Patterns in Kombination mit SAP CAP ist eine austauschbare Backend-Architektur praktikabel umsetzbar. Die Arbeit leistet damit einen Beitrag zur Frage, wie Unternehmen bestehende Excel-Workflows schrittweise modernisieren können.
 
@@ -16,10 +16,10 @@
 \normalsize
 \textbf{Background:} Digital transformation requires the integration of existing Excel-based workflows into modern system landscapes. In budget controlling, the question arises how a gradual transition to service-oriented architectures can be enabled without abruptly disrupting existing processes.
 
-\textbf{Research Question:} \textit{How can a cloud middleware for abstracting heterogeneous data sources on SAP BTP be designed so that a switch between an Excel-based backend and a service-oriented integration is possible with minimal effort?}
+\textbf{Research Question:} \textit{How can a cloud middleware for abstracting interchangeable data sources on SAP BTP be designed so that a switch between an Excel-based backend and a service-oriented integration is possible with minimal effort?}
 
 \textbf{Methodology:} To address this question, a middleware was developed using the SAP Cloud Application Programming Model (CAP) on the SAP Business Technology Platform (BTP). The architecture implements the adapter pattern to keep data sources interchangeable. The middleware aggregates data from an Excel file, calculates budget metrics (Budget, Actual, ETC, EAC), and exposes them via an OData v4-compliant API.
 
-\textbf{Results:} The evaluation demonstrates that all functional requirements were met. The estimated effort for switching backends to SAP Cloud ALM amounts to 8--13 person-days, with the service layer, API definitions, and frontend remaining unchanged. API response times range from 150--900\,ms depending on data volume.
+\textbf{Results:} The evaluation demonstrates that all functional requirements were met. The estimated effort for switching backends to direct SAP integration (SAP Cloud ALM for user stories, SAP S/4HANA for time bookings) amounts to 8--13 person-days, with the service layer, API definitions, and frontend remaining unchanged. API response times range from 150--900\,ms depending on data volume.
 
 \textbf{Conclusion:} Consistent application of the adapter pattern combined with SAP CAP enables a practical implementation of interchangeable backend architecture. The thesis thus contributes to the question of how organizations can gradually modernize their existing Excel workflows.

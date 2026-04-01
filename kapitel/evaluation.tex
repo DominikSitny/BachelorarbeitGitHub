@@ -1,6 +1,6 @@
 \section{Evaluation}
 
-In diesem Kapitel wird die entwickelte Middleware evaluiert und die beiden Backend-Ansätze (Excel vs. OData-Services) anhand definierter Kriterien verglichen. Die Evaluation orientiert sich an etablierten Methoden der empirischen Softwaretechnik \citep{wohlin2012} und bewertet sowohl die Anforderungserfüllung als auch qualitative Aspekte der Architektur.
+In diesem Kapitel wird die entwickelte Middleware evaluiert und die beiden Backend-Ansätze (Excel vs. direkte SAP-Anbindung) anhand definierter Kriterien verglichen. Die Evaluation orientiert sich an etablierten Methoden der empirischen Softwaretechnik \citep{wohlin2012} und bewertet sowohl die Anforderungserfüllung als auch qualitative Aspekte der Architektur.
 
 \subsection{Vergleichskriterien}
 
@@ -8,9 +8,9 @@ Für den Vergleich der Backend-Ansätze werden sechs Kriterien herangezogen, die
 
 Der \textbf{Implementierungsaufwand} bemisst den Aufwand für die initiale Entwicklung des jeweiligen Adapters. Die \textbf{Wartbarkeit} bewertet, wie aufwändig Änderungen und Fehlerbehebungen im laufenden Betrieb sind. Die \textbf{Erweiterbarkeit} beschreibt, wie einfach neue Funktionen (z.\,B. weitere Entitäten oder Metriken) hinzugefügt werden können. Die \textbf{Performance} bezieht sich auf Antwortzeiten und Durchsatz unter realistischen Bedingungen. Die \textbf{Datenkonsistenz} bewertet die Zuverlässigkeit und Aktualität der bereitgestellten Daten. Die \textbf{Austauschbarkeit} misst den Aufwand für einen vollständigen Backend-Wechsel -- das zentrale Kriterium im Kontext der Forschungsfrage.
 
-\subsection{Vergleich: Excel-Backend vs. OData-Services}
+\subsection{Vergleich: Excel-Backend vs. direkte SAP-Anbindung}
 
-Tabelle~\ref{tab:vergleich} stellt die beiden Backend-Ansätze gegenüber. Der Vergleich zeigt, dass die Ansätze komplementäre Stärken aufweisen: Das Excel-Backend punktet mit geringem Setup-Aufwand, Offline-Fähigkeit und einer niedrigen Lernkurve für Endnutzer, die bereits mit Excel vertraut sind. Das OData-Backend bietet hingegen Echtzeitdaten, Transaktionssicherheit und bessere Skalierbarkeit. Die Middleware-Architektur ermöglicht es, zunächst die Vorteile des Excel-Backends zu nutzen und später bei Bedarf auf OData-Services zu migrieren, ohne das Frontend anzupassen.
+Tabelle~\ref{tab:vergleich} stellt die beiden Backend-Ansätze gegenüber. Der Vergleich zeigt, dass die Ansätze komplementäre Stärken aufweisen: Das Excel-Backend punktet mit geringem Setup-Aufwand, Offline-Fähigkeit und einer niedrigen Lernkurve für Endnutzer, die bereits mit Excel vertraut sind. Das SAP-Backend mit direkter Anbindung an SAP \gls{calm} (User Stories) und SAP S/4HANA (Zeitbuchungen) bietet hingegen Echtzeitdaten, Transaktionssicherheit und bessere Skalierbarkeit. Die Middleware-Architektur ermöglicht es, zunächst die Vorteile des Excel-Backends zu nutzen und später bei Bedarf auf die direkte SAP-Anbindung zu migrieren, ohne das Frontend anzupassen.
 
 \begin{table}[H]
 \centering
@@ -18,7 +18,7 @@ Tabelle~\ref{tab:vergleich} stellt die beiden Backend-Ansätze gegenüber. Der V
 \label{tab:vergleich}
 \begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Kriterium} & \textbf{Excel/SharePoint} & \textbf{OData Services} \\
+\textbf{Kriterium} & \textbf{Excel/SharePoint} & \textbf{SAP-Anbindung} \\
 \midrule
 Setup-Aufwand & Gering -- Excel bereits vorhanden & Mittel -- Service-Konfiguration nötig \\
 \midrule
@@ -91,27 +91,27 @@ Die zentrale Forschungsfrage zielt auf die Austauschbarkeit des Backends ab. Um 
 
 \subsubsection{Durch das Adapter-Pattern geschützte Komponenten}
 
-Durch das Adapter-Pattern bleiben zentrale Komponenten bei einem Backend-Wechsel unverändert. Die \gls{cds} Service-Definition (\texttt{budget-service.cds}) definiert die \gls{api}-Schnittstelle unabhängig von der Datenquelle und erfordert keine Anpassungen. Die Budget-Berechnungslogik (\texttt{budget-calculations.js}) arbeitet ausschließlich auf den abstrakten Datenstrukturen des Adapters -- sie hat keine Kenntnis davon, ob die Daten aus Excel oder einem OData-Service stammen. Ebenso bleiben das Session-Management, die Fehlerbehandlung, die \gls{api}-Dokumentation sowie sämtliche 113 automatisierten Tests für die Service-Schicht unverändert. Insgesamt sind damit über 80\,\% der Codebasis vom Backend-Wechsel nicht betroffen.
+Durch das Adapter-Pattern bleiben zentrale Komponenten bei einem Backend-Wechsel unverändert. Die \gls{cds} Service-Definition (\texttt{budget-service.cds}) definiert die \gls{api}-Schnittstelle unabhängig von der Datenquelle und erfordert keine Anpassungen. Die Budget-Berechnungslogik (\texttt{budget-calculations.js}) arbeitet ausschließlich auf den abstrakten Datenstrukturen des Adapters -- sie hat keine Kenntnis davon, ob die Daten aus Excel oder direkt aus den SAP-Systemen stammen. Ebenso bleiben das Session-Management, die Fehlerbehandlung, die \gls{api}-Dokumentation sowie sämtliche 113 automatisierten Tests für die Service-Schicht unverändert. Insgesamt sind damit über 80\,\% der Codebasis vom Backend-Wechsel nicht betroffen.
 
 \subsubsection{Bei Backend-Wechsel zu ändernde Komponenten}
 
-Bei einem Backend-Wechsel muss ein neuer OData-Adapter implementiert werden, der das gleiche DataAdapter-Interface erfüllt wie der bestehende Excel-Adapter. Dieser Adapter würde HTTP-Requests an die \gls{calm}-\gls{api} senden, die Antworten auf das interne Datenmodell mappen und die Authentifizierung über OAuth 2.0 Client Credentials abwickeln. Zusätzlich muss die \texttt{loadData()}-Funktion in der Service-Schicht so konfiguriert werden, dass sie den neuen Adapter anstelle des Excel-Adapters aufruft. Der Write-Back für \gls{psp}-Zuordnungen müsste ebenfalls auf die \gls{calm}-\gls{api} umgestellt werden, wobei der PSP-Override-Mechanismus entfallen kann, da Änderungen direkt im Backend persistiert würden.
+Bei einem Backend-Wechsel muss ein neuer SAP-Adapter implementiert werden, der das gleiche DataAdapter-Interface erfüllt wie der bestehende Excel-Adapter. Dieser Adapter würde HTTP-Requests an zwei SAP-Systeme senden: SAP \gls{calm} für User Stories und geplante Aufwände sowie das operative SAP-System (z.\,B. SAP S/4HANA) für die Zeitbuchungen (CADO-Daten). Der Adapter aggregiert beide Datenquellen intern, mappt die Antworten auf das interne Datenmodell und wickelt die Authentifizierung über OAuth 2.0 Client Credentials ab. Zusätzlich muss die \texttt{loadData()}-Funktion in der Service-Schicht so konfiguriert werden, dass sie den neuen Adapter anstelle des Excel-Adapters aufruft. Der Write-Back für \gls{psp}-Zuordnungen müsste ebenfalls auf die SAP-\gls{api}s umgestellt werden, wobei der PSP-Override-Mechanismus entfallen kann, da Änderungen direkt in den Backend-Systemen persistiert würden.
 
 \subsubsection{Geschätzter Aufwand für Backend-Wechsel}
 
-Basierend auf der Implementierungserfahrung lässt sich der Aufwand für einen Backend-Wechsel abschätzen:
+Basierend auf der Implementierungserfahrung und etablierten Schätzmethoden lässt sich der Aufwand für einen Backend-Wechsel abschätzen. Die Schätzung orientiert sich an der \textit{Expert Judgment}-Methode \citep{jorgensen2004} und nutzt die Implementierung des Excel-Adapters als Referenz.
 
 \begin{table}[H]
 \centering
-\caption{Geschätzter Aufwand für Backend-Wechsel zu OData}
+\caption{Geschätzter Aufwand für Backend-Wechsel zur SAP-Anbindung}
 \label{tab:aufwand}
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}Xlc}
 \toprule
 \textbf{Komponente} & \textbf{Aufgabe} & \textbf{Aufwand} \\
 \midrule
-ODataAdapter & Implementierung analog zu ExcelAdapter & 3--5 PT \\
-Authentifizierung & OAuth 2.0 für SAP Cloud ALM & 1--2 PT \\
-Mapping & Anpassung der Datenstrukturen & 2--3 PT \\
+SAPAdapter & Implementierung analog zu ExcelAdapter & 3--5 PT \\
+Authentifizierung & OAuth 2.0 für SAP \gls{calm} + SAP S/4HANA & 1--2 PT \\
+Mapping & Anpassung der Datenstrukturen beider Systeme & 2--3 PT \\
 Testing & Integration \& Regressionstests & 2--3 PT \\
 \midrule
 \textbf{Gesamt} & & \textbf{8--13 PT} \\
@@ -119,7 +119,17 @@ Testing & Integration \& Regressionstests & 2--3 PT \\
 \end{tabularx}
 \end{table}
 
-Die Service-Schicht, CDS-Definitionen und das Frontend bleiben dabei unverändert (siehe Tabelle~\ref{tab:aufwand}) -- ein Beleg für die Wirksamkeit des Adapter-Patterns.
+Die Schätzungen in Tabelle~\ref{tab:aufwand} basieren auf folgenden Überlegungen:
+
+\textbf{SAPAdapter (3--5 PT):} Der Excel-Adapter umfasst ca. 450 Zeilen Code (LoC) und wurde in 4 PT implementiert. Der SAP-Adapter erfordert ähnliche Funktionalität (Laden, Mapping, Speichern), jedoch mit HTTP-Requests an zwei SAP-Systeme statt Datei-Parsing. Die Komplexität ist vergleichbar, wobei die API-Abfragelogik einfacher, die Fehlerbehandlung bei Netzwerkzugriffen und die Aggregation zweier Datenquellen jedoch aufwändiger ist.
+
+\textbf{Authentifizierung (1--2 PT):} Die OAuth-2.0-Authentifizierung für Microsoft Graph wurde bereits implementiert (ca. 80 LoC). Die Adaption für SAP \gls{calm} und SAP S/4HANA erfordert lediglich andere Scopes und Endpoints, weshalb der Aufwand gering ausfällt.
+
+\textbf{Mapping (2--3 PT):} Die Datenstrukturen der SAP-Systeme unterscheiden sich von den Excel-Spalten. Basierend auf der \gls{calm}-API-Dokumentation \citep{sap2024calm} sind User Stories und geplante Aufwände zu mappen, während die Zeitbuchungen aus dem SAP S/4HANA-System (CADO-Daten) separat abgerufen werden. Der Gesamtumfang entspricht dem des Excel-Mappings.
+
+\textbf{Testing (2--3 PT):} Die bestehenden 113 Tests für die Service-Schicht bleiben unverändert. Neue Tests sind nur für den SAP-Adapter erforderlich (geschätzt: 20--30 Tests), plus manuelle Integrationstests mit den SAP-Systemen.
+
+Die Service-Schicht, CDS-Definitionen und das Frontend bleiben dabei unverändert -- ein Beleg für die Wirksamkeit des Adapter-Patterns.
 
 \subsection{Performance-Analyse}
 
@@ -142,7 +152,7 @@ POST /startSession & -- & 45 ms & 80 ms \\
 \end{tabularx}
 \end{table}
 
-\textbf{Bewertung}: Die gemessenen Antwortzeiten liegen größtenteils unter 1 Sekunde, was nach etablierten Usability-Richtlinien als angemessen einzustufen ist -- Antwortzeiten unter 1 Sekunde werden von Nutzern als flüssig wahrgenommen, während Zeiten über 10 Sekunden zu Abbrüchen führen \citep{nielsen1993}. Moderne Web-Performance-Metriken empfehlen Interaktionszeiten unter 200\,ms für eine optimale Benutzererfahrung \citep{google2020}. Der überwiegende Anteil der Latenz ist auf das Parsen der Excel-Datei zurückzuführen. Bei einem Wechsel zu OData-Services ist mit kürzeren Antwortzeiten zu rechnen, da keine Dateitransformation erforderlich ist.
+\textbf{Bewertung}: Die gemessenen Antwortzeiten liegen größtenteils unter 1 Sekunde, was nach etablierten Usability-Richtlinien als angemessen einzustufen ist -- Antwortzeiten unter 1 Sekunde werden von Nutzern als flüssig wahrgenommen, während Zeiten über 10 Sekunden zu Abbrüchen führen \citep{nielsen1993}. Moderne Web-Performance-Metriken empfehlen Interaktionszeiten unter 200\,ms für eine optimale Benutzererfahrung \citep{google2020}. Der überwiegende Anteil der Latenz ist auf das Parsen der Excel-Datei zurückzuführen. Bei einem Wechsel zur direkten SAP-Anbindung ist mit kürzeren Antwortzeiten zu rechnen, da keine Dateitransformation erforderlich ist.
 
 \subsection{Testszenarien}
 
@@ -258,3 +268,19 @@ Die deklarative Service-Definition mit \gls{cds} beschleunigt die Entwicklung er
 Das Session-Management im RAM birgt Risiken: Bei Serverneustart gehen Sessions verloren, weshalb für den produktiven Einsatz eine Persistierung etwa über Redis oder eine Datenbank erforderlich wäre \citep{richardson2018}.
 
 Schließlich zeigt sich, dass die Middleware als Integrationsmuster fungiert -- konkret als \enquote{Anti-Corruption Layer} \citep{vernon2013}, der das Frontend vor den Eigenheiten der Excel-Struktur schützt. Dieses Muster ist auch aus den Enterprise Integration Patterns bekannt, wo es als \enquote{Message Translator} beschrieben wird \citep{hohpe2003}.
+
+\subsection{Bedrohungen der Validität}
+
+Zur kritischen Einordnung der Ergebnisse werden mögliche Bedrohungen der Validität nach \cite{wohlin2012} diskutiert.
+
+\subsubsection{Interne Validität}
+
+Die interne Validität betrifft kausale Zusammenhänge innerhalb der Studie. Die Performance-Messungen wurden auf einer einzelnen Cloud-Foundry-Instanz durchgeführt, wobei externe Faktoren (Netzwerklatenz, Systemlast) nicht kontrolliert wurden. Die Messungen erfolgten sequentiell, nicht unter realistischer Last mit mehreren gleichzeitigen Benutzern. Die Aufwandsschätzung für den Backend-Wechsel basiert auf Expert Judgment des Autors, nicht auf unabhängigen Schätzungen mehrerer Entwickler.
+
+\subsubsection{Externe Validität}
+
+Die externe Validität betrifft die Generalisierbarkeit der Ergebnisse. Die Middleware wurde für ein spezifisches Budget-Controlling-Szenario entwickelt. Die Übertragbarkeit auf andere Domänen (z.\,B. CRM, HR) ist plausibel, wurde jedoch nicht empirisch validiert. Die Testdaten stammen aus einem einzelnen SAP-Implementierungsprojekt; andere Projektstrukturen könnten andere Anforderungen an das Datenmodell stellen.
+
+\subsubsection{Konstruktvalidität}
+
+Die Konstruktvalidität betrifft die Angemessenheit der gewählten Metriken. Die Austauschbarkeit wurde über den geschätzten Implementierungsaufwand und den Anteil unveränderten Codes operationalisiert. Alternative Metriken wie Coupling-Metriken oder eine formale Architekturanalyse würden zusätzliche Perspektiven liefern. Die Performance wurde über Antwortzeiten gemessen; andere Aspekte wie Speicherverbrauch oder CPU-Auslastung wurden nicht systematisch erfasst.

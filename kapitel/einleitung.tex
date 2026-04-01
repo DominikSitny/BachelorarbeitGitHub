@@ -1,6 +1,8 @@
 \section{Einleitung}
 
-Die digitale Transformation von Geschäftsprozessen stellt Unternehmen vor die Herausforderung, bestehende Arbeitsweisen mit modernen Technologien zu verbinden \citep{westerman2014}. Insbesondere im Bereich des Projektcontrollings existieren in vielen Organisationen gewachsene Strukturen, die auf Microsoft Excel und SharePoint basieren. Studien zeigen, dass Tabellenkalkulationen in Unternehmen weit verbreitet sind und häufig geschäftskritische Funktionen übernehmen, gleichzeitig aber erhebliche Fehlerrisiken bergen \citep{panko2016, powell2009}. Gleichzeitig bieten Cloud-Plattformen wie die SAP \gls{btp} die Möglichkeit, solche heterogenen Datenquellen über eine zentrale Middleware zu abstrahieren und dem Frontend über eine einheitliche Schnittstelle bereitzustellen. Die vorliegende Arbeit untersucht, wie eine solche Cloud-Middleware konzipiert und implementiert werden kann.
+Die digitale Transformation von Geschäftsprozessen stellt Unternehmen vor die Herausforderung, bestehende Arbeitsweisen mit modernen Technologien zu verbinden \citep{westerman2014}. Insbesondere im Bereich des Projektcontrollings existieren in vielen Organisationen gewachsene Strukturen, die auf Microsoft Excel und SharePoint basieren. Studien zeigen, dass Tabellenkalkulationen in Unternehmen weit verbreitet sind und häufig geschäftskritische Funktionen übernehmen. Gleichzeitig bergen sie erhebliche Fehlerrisiken \citep{panko2016, powell2009}.
+
+Cloud-Plattformen wie die SAP \gls{btp} bieten die Möglichkeit, solche Datenquellen über eine zentrale Middleware zu abstrahieren. Die Datenquellen können austauschbar gestaltet und dem Frontend über eine einheitliche Schnittstelle bereitgestellt werden. Die vorliegende Arbeit untersucht, wie eine solche Cloud-Middleware konzipiert und implementiert werden kann.
 
 \subsection{Motivation und Problemstellung}
 
@@ -12,19 +14,35 @@ Gleichzeitig stellt SAP mit dem \gls{calm} eine moderne Lösung für das Applica
 
 \subsection{Zielsetzung}
 
-Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}, welche heterogene Datenquellen -- aktuell Excel-Dateien auf SharePoint, perspektivisch \gls{odata}-Services -- hinter einer einheitlichen \gls{api} abstrahiert. Die Middleware soll Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen sowie \gls{crud}-Operationen für manuelle \gls{psp}-Zuordnungen bereitstellen. Durch den Einsatz geeigneter Architekturmuster -- insbesondere des Adapter-Patterns -- soll dabei die Austauschbarkeit des Backends gewährleistet werden, sodass ein schrittweiser Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen mit minimalem Aufwand möglich ist.
+Ziel dieser Arbeit ist die Konzeption und Implementierung einer Cloud-Middleware auf der SAP \gls{btp}. Diese soll austauschbare Datenquellen -- aktuell Excel-Dateien auf SharePoint, perspektivisch eine direkte Anbindung an die SAP-Systeme -- hinter einer einheitlichen \gls{api} abstrahieren. Die Middleware soll Budget-Metriken aus verschiedenen Quellen automatisiert aggregieren und berechnen sowie \gls{crud}-Operationen für manuelle \gls{psp}-Zuordnungen bereitstellen.
 
-Konkret soll die Arbeit folgende Ergebnisse liefern: eine deployed Middleware auf der SAP \gls{btp} mit \gls{odata} v4-konformer Schnittstelle, einen funktionsfähigen Excel-Adapter als Referenzimplementierung, eine konzeptionelle Beschreibung des OData-Adapters als Zielvariante sowie eine vergleichende Evaluation beider Ansätze.
+Durch den Einsatz geeigneter Architekturmuster -- insbesondere des Adapter-Patterns -- soll die Austauschbarkeit des Backends gewährleistet werden. Ein schrittweiser Wechsel von einem Excel-basierten Backend zu service-orientierten Datenquellen soll mit minimalem Aufwand möglich sein.
+
+Konkret soll die Arbeit folgende Ergebnisse liefern: eine deployed Middleware auf der SAP \gls{btp} mit \gls{odata} v4-konformer Schnittstelle, einen funktionsfähigen Excel-Adapter als Referenzimplementierung, eine konzeptionelle Beschreibung des SAP-Adapters (für die direkte Anbindung an SAP \gls{calm} und SAP S/4HANA) als Zielvariante sowie eine vergleichende Evaluation beider Ansätze.
 
 \subsection{Forschungsfrage}
 
 Die zentrale Forschungsfrage dieser Arbeit lautet:
 
 \begin{quote}
-\textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
+\textit{Wie kann eine Cloud-Middleware zur Abstraktion austauschbarer Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 \end{quote}
 
-Daraus ergeben sich folgende Teilfragen: Erstens, welche Architekturmuster eignen sich für die Abstraktion heterogener Datenquellen in einer Cloud-Middleware? Zweitens, wie unterscheiden sich ein Excel-basiertes Backend und eine service-orientierte Integration hinsichtlich Wartbarkeit, Erweiterbarkeit und Performance? Drittens, welcher konkrete Implementierungsaufwand ist für den Wechsel zwischen den Backend-Varianten erforderlich?
+Daraus ergeben sich folgende Teilfragen:
+
+\begin{itemize}
+    \item[\textbf{TF-1}] Welche Architekturmuster eignen sich für die Abstraktion austauschbarer Datenquellen in einer Cloud-Middleware?
+    \item[\textbf{TF-2}] Wie unterscheiden sich ein Excel-basiertes Backend und eine service-orientierte Integration hinsichtlich Wartbarkeit, Erweiterbarkeit und Performance?
+    \item[\textbf{TF-3}] Welcher konkrete Implementierungsaufwand ist für den Wechsel zwischen den Backend-Varianten erforderlich?
+\end{itemize}
+
+\subsection{Methodisches Vorgehen}
+
+Diese Arbeit folgt dem \textit{Design Science Research}-Ansatz (DSR) nach \cite{hevner2004} und \cite{peffers2007}. DSR eignet sich für die Entwicklung und Evaluation von IT-Artefakten, die reale Probleme adressieren -- in diesem Fall die Middleware als Lösung für die identifizierten Defizite im Budget-Controlling.
+
+Das methodische Vorgehen gliedert sich in sechs Phasen: In der \textbf{Problemidentifikation} (Kapitel~3.1) werden die Schwachstellen des bestehenden Excel-basierten Workflows analysiert. Die \textbf{Zieldefinition} (Kapitel~3.2--3.6) umfasst die Ableitung funktionaler und nicht-funktionaler Anforderungen sowie die Definition von Use Cases. In der Phase \textbf{Design \& Entwicklung} (Kapitel~4--5) wird die Middleware-Architektur entworfen und implementiert. Die \textbf{Demonstration} erfolgt durch das Deployment auf der SAP BTP und die Bereitstellung einer funktionsfähigen API. Die \textbf{Evaluation} (Kapitel~6) bewertet das Artefakt anhand definierter Kriterien, Testszenarien und einer SWOT-Analyse. Die abschließende \textbf{Kommunikation} erfolgt durch diese Arbeit selbst.
+
+Als Evaluationsmethoden kommen sowohl quantitative Ansätze (Performance-Messungen, Testabdeckung) als auch qualitative Ansätze (Anforderungserfüllung, Architekturanalyse) zum Einsatz \citep{wohlin2012}.
 
 \subsection{Aufbau der Arbeit}
 

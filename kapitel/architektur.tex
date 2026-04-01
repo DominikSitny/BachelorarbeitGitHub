@@ -20,11 +20,11 @@ Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwo
 
     % Adapter-Implementierungen
     \node[sublayer, fill=red!10] (excel) at (-3,-1) {ExcelAdapter\\(excel-parser.js)};
-    \node[sublayer, fill=purple!10] (odata) at (3,-1) {ODataAdapter\\(konzeptionell)};
+    \node[sublayer, fill=purple!10] (odata) at (3,-1) {SAPAdapter\\(konzeptionell)};
 
     % Datenquellen
     \node[sublayer, fill=gray!20] (sp) at (-3,-2.5) {SharePoint/Excel};
-    \node[sublayer, fill=gray!20] (calm) at (3,-2.5) {SAP Cloud ALM};
+    \node[sublayer, fill=gray!20, minimum width=5.5cm, minimum height=1.4cm] (calm) at (3,-2.6) {SAP Cloud ALM\\+ SAP S/4HANA};
 
     % Verbindungen
     \draw[->, thick] (adapter.south) -- (-3,0) -- (excel.north);
@@ -36,7 +36,7 @@ Die Middleware folgt einer Schichtenarchitektur mit klarer Trennung der Verantwo
 \label{fig:architektur}
 \end{figure}
 
-Die oberste Schicht bildet die Präsentationsschicht mit dem Fiori Frontend, das nicht Teil dieser Arbeit ist. Darunter liegt die API-Schicht, die einen \gls{odata} v4 Service über SAP \gls{cap} bereitstellt. Die Service-Schicht kapselt die Geschäftslogik und Berechnungen, während die Adapter-Schicht den konkreten Datenzugriff über den Excel-Parser oder einen OData-Connector realisiert. Die unterste Ebene bildet die Datenschicht mit SharePoint/Excel oder \gls{calm} Services als Datenquellen.
+Die oberste Schicht bildet die Präsentationsschicht mit dem Fiori Frontend, das nicht Teil dieser Arbeit ist. Darunter liegt die API-Schicht, die einen \gls{odata} v4 Service über SAP \gls{cap} bereitstellt. Die Service-Schicht kapselt die Geschäftslogik und Berechnungen, während die Adapter-Schicht den konkreten Datenzugriff über den Excel-Parser oder einen SAP-Connector realisiert. Die unterste Ebene bildet die Datenschicht mit SharePoint/Excel oder den SAP-Systemen (\gls{calm} für User Stories, SAP S/4HANA für Zeitbuchungen) als Datenquellen.
 
 \subsection{Schichtenmodell}
 
@@ -58,11 +58,11 @@ Die Schicht gliedert sich intern in drei Verantwortungsbereiche. Der erste Berei
 
 \subsubsection{Adapter-Schicht}
 
-Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen und stellt der Service-Schicht ein einheitliches Datenmodell zur Verfügung -- unabhängig davon, ob die Daten aus einer Excel-Datei oder einem OData-Service stammen. Die Service-Schicht ruft ausschließlich Methoden der Adapter-Schnittstelle auf (etwa \texttt{loadTeams()}, \texttt{loadUserStories()} oder \texttt{savePSPAssignment()}) und hat keine Kenntnis über die konkrete Datenquelle. Dieses Prinzip der Umkehrung der Abhängigkeit (\textit{Dependency Inversion}) ist ein Kernelement austauschbarer Architekturen \citep{gamma1994}. Die Adapter-Schicht wird in Abschnitt~4.3 im Detail beschrieben.
+Die Adapter-Schicht abstrahiert den Zugriff auf die Datenquellen und stellt der Service-Schicht ein einheitliches Datenmodell zur Verfügung -- unabhängig davon, ob die Daten aus einer Excel-Datei oder direkt aus den SAP-Systemen stammen. Die Service-Schicht ruft ausschließlich Methoden der Adapter-Schnittstelle auf (etwa \texttt{loadTeams()}, \texttt{loadUserStories()} oder \texttt{savePSPAssignment()}) und hat keine Kenntnis über die konkrete Datenquelle. Dieses Prinzip der Umkehrung der Abhängigkeit (\textit{Dependency Inversion}) ist ein Kernelement austauschbarer Architekturen \citep{gamma1994}. Die Adapter-Schicht wird in Abschnitt~4.3 im Detail beschrieben.
 
 \subsubsection{Datenschicht}
 
-Die Datenschicht bezeichnet die externen Datenquellen selbst. Im aktuellen Zustand ist dies eine \texttt{Budgetcontrolling.xlsx} auf dem lokalen Dateisystem (bzw. perspektivisch auf SharePoint), die über Power Query mit Daten aus SAP \gls{calm} befüllt wird. Bei einem späteren Backend-Wechsel würde diese Schicht durch die OData-Services von SAP \gls{calm} ersetzt, ohne dass die darüberliegenden Schichten angepasst werden müssen.
+Die Datenschicht bezeichnet die externen Datenquellen selbst. Im aktuellen Zustand ist dies eine \texttt{Budgetcontrolling.xlsx} auf dem lokalen Dateisystem (bzw. perspektivisch auf SharePoint), die über Power Query mit Daten aus verschiedenen SAP-Systemen befüllt wird: User Stories und geplante Aufwände stammen aus SAP \gls{calm}, während die Zeitbuchungen (CADO) aus dem operativen SAP-System (z.\,B. SAP S/4HANA) exportiert werden. Bei einem späteren Backend-Wechsel würde diese Schicht durch direkte API-Anbindungen an beide SAP-Systeme ersetzt, ohne dass die darüberliegenden Schichten angepasst werden müssen.
 
 \subsection{Adapter-Pattern für Backend-Austauschbarkeit}
 
@@ -88,7 +88,7 @@ Der zentrale Entwurfsgedanke besteht in der Austauschbarkeit des Backends. Die A
 
     % Implementierungen
     \node[class, fill=green!10] (excel) at (-3.5,-4) {ExcelAdapter\\(implementiert)};
-    \node[class, fill=blue!10] (odata) at (3.5,-4) {ODataAdapter\\(konzeptionell)};
+    \node[class, fill=blue!10] (odata) at (3.5,-4) {SAPAdapter\\(konzeptionell)};
 
     % Vererbungspfeile
     \draw[->, thick, dashed] (excel.north) -- (-3.5,-1.5) -- (iface.south west);
@@ -114,17 +114,17 @@ interface DataAdapter {
 
 \subsubsection{Excel-Adapter}
 
-Der Excel-Adapter ist die aktuell implementierte Variante des DataAdapter-Interfaces. Er liest sämtliche Daten aus einer einzigen \texttt{Budgetcontrolling.xlsx}, die mehrere Sheets mit unterschiedlichen Strukturen enthält (vgl. Tabelle~\ref{tab:excel-sheets} in Kapitel~3). Die zentrale Herausforderung besteht darin, diese heterogenen Sheet-Formate -- tabellarische Stammdaten, SAP-Listenexporte mit spezieller Spaltenstruktur und manuell gepflegte Zuordnungstabellen -- auf ein einheitliches Datenmodell abzubilden.
+Der Excel-Adapter ist die aktuell implementierte Variante des DataAdapter-Interfaces. Er liest sämtliche Daten aus einer einzigen \texttt{Budgetcontrolling.xlsx}, die mehrere Sheets mit unterschiedlichen Strukturen enthält (vgl. Tabelle~\ref{tab:excel-sheets} in Kapitel~3). Die zentrale Herausforderung besteht darin, diese unterschiedlichen Sheet-Formate -- tabellarische Stammdaten, SAP-Listenexporte mit spezieller Spaltenstruktur und manuell gepflegte Zuordnungstabellen -- auf ein einheitliches Datenmodell abzubilden.
 
 Der Adapter übernimmt dabei drei Aufgaben. Erstens das Parsen der verschiedenen Sheets: Jedes Sheet erfordert eine individuelle Parsing-Logik, da sich Spaltenbezeichnungen, Datentypen und Startzeilen unterscheiden. Insbesondere das CADO-Sheet mit den Zeitbuchungen weicht vom Standardformat ab, da es als SAP-Listenexport ein spezielles Spaltenlayout und das deutsche Zahlenformat verwendet. Zweitens das Mapping auf das einheitliche Datenmodell: Die geparsten Rohdaten werden in die \gls{cds}-Entitäten überführt, sodass die Service-Schicht keine Kenntnis über die Excel-Struktur benötigt. Drittens der Write-Back für \gls{psp}-Zuordnungen: Neue, geänderte oder gelöschte Zuordnungen werden direkt in das Sheet \enquote{1. PSP-Zuordnung} geschrieben, wobei die übrigen Sheets unverändert bleiben.
 
 Ein besonderer Aspekt ist der PSP-Override-Mechanismus (vgl. Abschnitt~4.6): Manuelle Zuordnungen aus dem \enquote{1. PSP-Zuordnung}-Sheet überschreiben die ursprünglichen PSP-Zuordnungen aus \texttt{qry\_CALM\_Data}, sodass Änderungen über die \gls{api} sofort wirksam werden, ohne dass die Power-Query-Verbindung in Excel aktualisiert werden muss.
 
-\subsubsection{OData-Adapter (konzeptionell)}
+\subsubsection{SAP-Adapter (konzeptionell)}
 
-Der OData-Adapter ist die perspektivische Alternative zum Excel-Adapter und würde Daten direkt von den OData-Services des SAP \gls{calm} abrufen. Er ist im Rahmen dieser Arbeit nicht implementiert, jedoch so konzipiert, dass er das gleiche DataAdapter-Interface erfüllt und somit den Excel-Adapter ohne Änderungen an der Service-Schicht ersetzen kann.
+Der SAP-Adapter ist die perspektivische Alternative zum Excel-Adapter und würde Daten direkt von den SAP-Systemen abrufen. Er ist im Rahmen dieser Arbeit nicht implementiert, jedoch so konzipiert, dass er das gleiche DataAdapter-Interface erfüllt und somit den Excel-Adapter ohne Änderungen an der Service-Schicht ersetzen kann.
 
-Anstatt eine lokale Excel-Datei zu parsen, würde der OData-Adapter HTTP-Requests an die \gls{calm}-\gls{api} senden, um User Stories, Zeitbuchungen und Projektstrukturen abzurufen. Die Authentifizierung erfolgt über den OAuth 2.0 Client Credentials Flow, da die Middleware als Server-zu-Server-Anwendung ohne Benutzerinteraktion agiert. Das Mapping der \gls{calm}-Datenstrukturen auf das interne Datenmodell der Middleware übernimmt der Adapter analog zum Excel-Adapter, sodass die Budget-Berechnungslogik identisch bleibt. Der wesentliche Unterschied liegt darin, dass Echtzeitdaten zur Verfügung stünden, da keine manuelle Aktualisierung der Excel-Power-Query mehr erforderlich wäre. Der geschätzte Implementierungsaufwand für diesen Adapter wird in Kapitel~6 evaluiert.
+Anstatt eine lokale Excel-Datei zu parsen, würde der SAP-Adapter HTTP-Requests an zwei verschiedene APIs senden: Die OData-Schnittstelle von SAP \gls{calm} liefert User Stories mit ihren geplanten Aufwänden (\gls{etc}), während die API des operativen SAP-Systems (z.\,B. SAP S/4HANA) die Zeitbuchungen (CADO-Daten) für die Actual-Berechnung bereitstellt. Der Adapter aggregiert beide Datenquellen intern und stellt sie über das einheitliche DataAdapter-Interface bereit. Die Authentifizierung erfolgt über den OAuth 2.0 Client Credentials Flow, da die Middleware als Server-zu-Server-Anwendung ohne Benutzerinteraktion agiert. Das Mapping der SAP-Datenstrukturen auf das interne Datenmodell der Middleware übernimmt der Adapter analog zum Excel-Adapter, sodass die Budget-Berechnungslogik identisch bleibt. Der wesentliche Unterschied liegt darin, dass Echtzeitdaten zur Verfügung stünden, da keine manuelle Aktualisierung der Excel-Power-Query mehr erforderlich wäre. Der geschätzte Implementierungsaufwand für diesen Adapter wird in Kapitel~6 evaluiert.
 
 \subsection{Session-Management}
 
@@ -192,7 +192,7 @@ Timeboxes & Stammdaten & Projektphasen (Prepare, Explore, Realize, Deploy, Run) 
 PSPElements & Fachdaten & \gls{psp}-Elemente mit zugeordnetem Team und Budget in PT \\
 UserStories & Fachdaten & User Stories mit Aufwänden, Status und \gls{psp}-Zuordnung \\
 TimeBookings & Fachdaten & Zeitbuchungen aus dem SAP-Export (Stunden pro \gls{psp}) \\
-PSPAssignments & Fachdaten & Manuelle User-Story-zu-\gls{psp}-Zuordnungen (CRUD-fähig) \\
+PSPAssignments & Fachdaten & Manuelle User-Story-zu-PSP-Zuordnungen (CRUD-fähig) \\
 BudgetOverview & Berechnet & Budget, Actual, \gls{etc} und \gls{eac} aggregiert pro Team \\
 BudgetOverviewByPSP & Berechnet & Budget, Actual, \gls{etc} und \gls{eac} aggregiert pro \gls{psp} \\
 \bottomrule
@@ -217,7 +217,7 @@ Die Auswirkung auf die Budget-Berechnung ist unmittelbar: Die \gls{etc}-Berechnu
 4. -> ETC-Berechnung nutzt das neue PSP
 \end{lstlisting}
 
-Architektonisch ist dieser Mechanismus ein Beispiel für das Prinzip der Datenhoheit auf Anwendungsebene: Die Middleware übernimmt die Verantwortung für die Konsistenz der Daten, anstatt sich auf die Aktualisierungsmechanismen der Datenquelle zu verlassen. Bei einem späteren Wechsel auf den OData-Adapter entfällt der Override-Mechanismus, da Änderungen direkt im SAP \gls{calm} persistiert und über die OData-Schnittstelle in Echtzeit bereitgestellt würden.
+Architektonisch ist dieser Mechanismus ein Beispiel für das Prinzip der Datenhoheit auf Anwendungsebene: Die Middleware übernimmt die Verantwortung für die Konsistenz der Daten, anstatt sich auf die Aktualisierungsmechanismen der Datenquelle zu verlassen. Bei einem späteren Wechsel auf den SAP-Adapter entfällt der Override-Mechanismus, da Änderungen direkt in den SAP-Systemen persistiert und über deren Schnittstellen in Echtzeit bereitgestellt würden.
 
 \subsection{Sequenzdiagramme}
 
@@ -368,3 +368,35 @@ Die Fehlerbehandlung folgt dem Prinzip, Fehler so früh wie möglich zu erkennen
     }
 }
 \end{lstlisting}
+
+\subsection{Sicherheitsaspekte}
+
+Die Sicherheit der Middleware basiert auf mehreren Ebenen, die zusammen einen Defense-in-Depth-Ansatz bilden \citep{owasp2021}.
+
+\subsubsection{Authentifizierung und Autorisierung}
+
+Die Benutzerauthentifizierung wird durch den SAP Authorization and Trust Management Service (XSUAA) auf der \gls{btp} bereitgestellt und ist nicht Teil der Middleware-Implementierung. Die Middleware setzt eine gültige Authentifizierung voraus und verwaltet lediglich die Session-Zuordnung zu Projekten. In einer produktiven Umgebung würden zusätzlich rollenbasierte Berechtigungen (RBAC) implementiert, um zu steuern, welche Benutzer \gls{psp}-Zuordnungen erstellen oder löschen dürfen.
+
+\subsubsection{Input-Validierung}
+
+Alle Eingabeparameter werden vor der Verarbeitung validiert, um Injection-Angriffe zu verhindern:
+
+\begin{itemize}
+    \item \textbf{PSP-Zuordnungen}: Die Parameter \texttt{userStory}, \texttt{psp}, \texttt{teamUserStory} und \texttt{teamPSP} werden auf Typ (String), Länge (max. 200 Zeichen) und unzulässige Zeichen geprüft.
+    \item \textbf{Session-IDs}: Nur alphanumerische Zeichen werden akzeptiert; die ID wird gegen die In-Memory-Map validiert, nicht gegen eine Datenbank (kein SQL-Injection-Risiko).
+    \item \textbf{Projektnamen}: Werden gegen die Whitelist der vorhandenen Projektordner geprüft, um Path-Traversal-Angriffe zu verhindern.
+\end{itemize}
+
+\subsubsection{Sichere Kommunikation}
+
+Die Kommunikation zwischen Client und Middleware erfolgt ausschließlich über HTTPS, was durch die SAP \gls{btp} Cloud Foundry Infrastruktur erzwungen wird. Die Authentifizierung gegenüber Microsoft Graph (für SharePoint-Zugriff) nutzt OAuth 2.0 mit Client Credentials, wobei das Client-Secret als Umgebungsvariable auf der \gls{btp} hinterlegt ist und nicht im Quellcode erscheint.
+
+\subsubsection{Limitierungen}
+
+Die aktuelle Implementierung weist folgende sicherheitsrelevante Limitierungen auf, die für den produktiven Einsatz adressiert werden sollten:
+
+\begin{itemize}
+    \item Keine Rate-Limiting-Mechanismen gegen DoS-Angriffe
+    \item Kein Audit-Trail für Änderungen an \gls{psp}-Zuordnungen
+    \item Session-IDs werden nicht kryptographisch sicher generiert (für Prototyp akzeptabel)
+\end{itemize}

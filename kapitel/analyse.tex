@@ -64,7 +64,7 @@ Das vierte Problem ist die \textbf{mangelnde Nachvollziehbarkeit}. Änderungen a
 
 Die Middleware soll die beschriebenen Probleme lösen und gleichzeitig einen einfachen Übergang zu einer service-orientierten Architektur ermöglichen. Middleware bezeichnet dabei Software, die als Vermittlungsschicht zwischen verteilten Anwendungen fungiert und deren Kommunikation vereinfacht \citep{bernstein1996, tanenbaum2017}.
 
-Das Konzept folgt dem Prinzip der \enquote{Strangler Fig Application} \citep{newman2021}: Anstatt das bestehende Excel-basierte System vollständig abzulösen, wird zunächst eine Middleware eingeführt, die die Excel-Daten über eine standardisierte \gls{api} bereitstellt. Das Frontend kommuniziert ausschließlich mit der Middleware und hat keine Kenntnis über die zugrundeliegende Datenquelle. In einem späteren Schritt kann die Excel-Datenquelle durch OData-Services von SAP \gls{calm} ersetzt werden, ohne dass das Frontend angepasst werden muss. Die Middleware übernimmt somit die Rolle des \enquote{Stranglers}, der das alte System schrittweise durch eine neue Architektur ersetzt.
+Das Konzept folgt dem Prinzip der \enquote{Strangler Fig Application} \citep{newman2021}: Anstatt das bestehende Excel-basierte System vollständig abzulösen, wird zunächst eine Middleware eingeführt, die die Excel-Daten über eine standardisierte \gls{api} bereitstellt. Das Frontend kommuniziert ausschließlich mit der Middleware und hat keine Kenntnis über die zugrundeliegende Datenquelle. In einem späteren Schritt kann die Excel-Datenquelle durch eine direkte Anbindung an die SAP-Systeme ersetzt werden -- SAP \gls{calm} für User Stories und geplante Aufwände sowie SAP S/4HANA für die Zeitbuchungen (CADO-Daten) -- ohne dass das Frontend angepasst werden muss. Die Middleware übernimmt somit die Rolle des \enquote{Stranglers}, der das alte System schrittweise durch eine neue Architektur ersetzt.
 
 \begin{figure}[H]
 \centering
@@ -73,17 +73,19 @@ Das Konzept folgt dem Prinzip der \enquote{Strangler Fig Application} \citep{new
     arrow/.style={->, >=stealth, thick}
 ]
     % Datenquellen links
-    \node[box, fill=blue!20] (calm) at (0,1.5) {SAP Cloud ALM};
-    \node[box, fill=green!20] (sharepoint) at (0,0) {SharePoint\\Excel};
+    \node[box, fill=blue!20] (calm) at (0,2.2) {SAP Cloud ALM\\(User Stories)};
+    \node[box, fill=blue!10] (s4) at (0,0.8) {SAP S/4HANA\\(CADO-Daten)};
+    \node[box, fill=green!20] (sharepoint) at (0,-0.6) {SharePoint\\Excel};
 
     % Middleware Mitte
-    \node[box, fill=yellow!30, minimum width=3.5cm, minimum height=3cm] (middleware) at (5,0.75) {BC Middleware\\(SAP CAP/BTP)};
+    \node[box, fill=yellow!30, minimum width=3.5cm, minimum height=3.5cm] (middleware) at (5,0.8) {BC Middleware\\(SAP CAP/BTP)};
 
     % Frontend rechts
-    \node[box, fill=orange!20] (frontend) at (10,0.75) {Fiori\\Frontend};
+    \node[box, fill=orange!20] (frontend) at (10,0.8) {Fiori\\Frontend};
 
     % Pfeile
     \draw[arrow] (calm) -- (middleware);
+    \draw[arrow] (s4) -- (middleware);
     \draw[arrow] (sharepoint) -- (middleware);
     \draw[arrow] (middleware) -- (frontend);
 \end{tikzpicture}
@@ -95,19 +97,27 @@ Abbildung~\ref{fig:soll-architektur} zeigt die resultierende Zielarchitektur. Di
 
 \subsection{Verwandte Arbeiten}
 
-Die Problemstellung der vorliegenden Arbeit berührt mehrere Forschungsbereiche, die im Folgenden eingeordnet werden.
+Die Problemstellung der vorliegenden Arbeit berührt mehrere Forschungsbereiche, die im Folgenden eingeordnet und voneinander abgegrenzt werden.
 
 \subsubsection{Middleware und Integrationsarchitekturen}
 
 Das Konzept der Middleware als Vermittlungsschicht zwischen heterogenen Systemen ist seit den 1990er Jahren etabliert \citep{bernstein1996}. \cite{emmerich2000} identifizierte Middleware als zentrales Element für die Integration verteilter Systeme und prognostizierte deren wachsende Bedeutung. Die Enterprise Integration Patterns von \cite{hohpe2003} bieten einen umfassenden Katalog von Integrationsmustern, darunter das in dieser Arbeit verwendete Adapter-Pattern.
 
+Im SAP-Ökosystem existieren verschiedene Integrationsansätze: Die SAP Integration Suite bietet vorgefertigte Konnektoren für gängige Systeme \citep{sap2024btp}, erfordert jedoch zusätzliche Lizenzkosten und eignet sich primär für Standard-Integrationsszenarien. \cite{keller2019} beschreiben die Architektur von SAP \gls{cap} und dessen Eignung für die Entwicklung von Microservices, wobei der Fokus auf der Datenbankanbindung liegt -- die Abstraktion heterogener Datenquellen wird nicht thematisiert.
+
 \subsubsection{Spreadsheet-basierte Systeme in Unternehmen}
 
-Die Verbreitung und Risiken von Spreadsheet-Anwendungen in Unternehmen sind Gegenstand umfangreicher Forschung. \cite{panko2016} beschreiben Tabellenkalkulationen als \enquote{Dark Matter} der Unternehmens-IT -- allgegenwärtig, aber schwer zu kontrollieren. \cite{powell2009} dokumentieren in ihrer Metastudie, dass Spreadsheets häufig Fehler enthalten und dennoch für geschäftskritische Entscheidungen verwendet werden. Diese Erkenntnisse unterstreichen die Relevanz von Lösungen, die einen kontrollierten Übergang zu strukturierteren Systemen ermöglichen.
+Die Verbreitung und Risiken von Spreadsheet-Anwendungen in Unternehmen sind Gegenstand umfangreicher Forschung. \cite{panko2016} beschreiben Tabellenkalkulationen als \enquote{Dark Matter} der Unternehmens-IT -- allgegenwärtig, aber schwer zu kontrollieren. \cite{powell2009} dokumentieren in ihrer Metastudie, dass Spreadsheets häufig Fehler enthalten und dennoch für geschäftskritische Entscheidungen verwendet werden. \cite{hermans2015} entwickelten Werkzeuge zur Analyse und Verbesserung von Spreadsheet-Qualität, adressieren jedoch nicht die Migration zu service-orientierten Architekturen.
+
+Diese Erkenntnisse unterstreichen die Relevanz von Lösungen, die einen kontrollierten Übergang zu strukturierteren Systemen ermöglichen, ohne die vertraute Excel-Arbeitsweise abrupt zu beenden.
+
+\subsubsection{Low-Code-Plattformen als Alternative}
+
+Ein alternativer Ansatz zur Ablösung von Excel-basierten Lösungen sind Low-Code-Plattformen wie SAP Build Apps oder Microsoft Power Platform \citep{sahay2020}. Diese ermöglichen die schnelle Entwicklung von Anwendungen mit minimalem Programmieraufwand. Allerdings bieten sie weniger Kontrolle über die Architektur und erschweren die Integration in bestehende Entwicklungsprozesse \citep{bock2021}. Die vorliegende Arbeit verfolgt bewusst einen Pro-Code-Ansatz mit SAP \gls{cap}, um maximale Flexibilität bei der Backend-Austauschbarkeit zu gewährleisten.
 
 \subsubsection{Abgrenzung}
 
-Im Unterschied zu bestehenden Arbeiten, die sich primär auf die Fehleranalyse von Spreadsheets oder allgemeine Integrationsarchitekturen konzentrieren, adressiert diese Arbeit die spezifische Fragestellung der Backend-Austauschbarkeit im SAP-Kontext. Der Fokus liegt auf der praktischen Umsetzung einer Architektur, die sowohl Excel-basierte als auch service-orientierte Backends unterstützt.
+Im Unterschied zu bestehenden Arbeiten, die sich primär auf die Fehleranalyse von Spreadsheets, allgemeine Integrationsarchitekturen oder Low-Code-Alternativen konzentrieren, adressiert diese Arbeit die spezifische Fragestellung der Backend-Austauschbarkeit im SAP-Kontext. Der Fokus liegt auf der praktischen Umsetzung einer Architektur, die sowohl Excel-basierte als auch service-orientierte Backends unterstützt -- ein Szenario, das in der wissenschaftlichen Literatur bislang nicht systematisch untersucht wurde.
 
 \subsection{Stakeholder-Analyse}
 
@@ -284,4 +294,4 @@ Die Anforderungen werden nach der MoSCoW-Methode priorisiert \citep{sommerville2
 \subsection{Abgrenzung}
 \label{sec:abgrenzung}
 
-Mehrere Aspekte sind bewusst nicht Bestandteil dieser Arbeit. Das Fiori-Frontend wird von anderen Studierenden im Rahmen separater Arbeiten entwickelt; die vorliegende Arbeit stellt lediglich die API bereit. Die vollständige CALM-Integration wird nur konzeptionell beschrieben, aber nicht implementiert, was dennoch eine Bewertung der Austauschbarkeit ermöglicht. Die Benutzer-Authentifizierung wird durch die SAP BTP (XSUAA Service) bereitgestellt und ist somit nicht Teil der Middleware-Implementierung. Eine vollständige Audit-Trail-Funktionalität für die Historisierung von Änderungen ist ebenso wenig vorgesehen wie eine vollständige Mandantentrennung mit separaten Datenbeständen -- die Middleware unterstützt zwar mehrere Projekte, jedoch keine echte Mandantenfähigkeit.
+Mehrere Aspekte sind bewusst nicht Bestandteil dieser Arbeit. Das Fiori-Frontend wird von anderen Studierenden im Rahmen separater Arbeiten entwickelt; die vorliegende Arbeit stellt lediglich die API bereit. Die vollständige SAP-Integration (direkte Anbindung an SAP \gls{calm} und SAP S/4HANA) wird nur konzeptionell beschrieben, aber nicht implementiert, was dennoch eine Bewertung der Austauschbarkeit ermöglicht. Die Benutzer-Authentifizierung wird durch die SAP BTP (XSUAA Service) bereitgestellt und ist somit nicht Teil der Middleware-Implementierung. Eine vollständige Audit-Trail-Funktionalität für die Historisierung von Änderungen ist ebenso wenig vorgesehen wie eine vollständige Mandantentrennung mit separaten Datenbeständen -- die Middleware unterstützt zwar mehrere Projekte, jedoch keine echte Mandantenfähigkeit.

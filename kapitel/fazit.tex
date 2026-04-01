@@ -4,27 +4,27 @@ Dieses abschließende Kapitel fasst die Ergebnisse der Arbeit zusammen, beantwor
 
 \subsection{Zusammenfassung}
 
-Ausgangspunkt dieser Arbeit war ein Excel-basierter Workflow im Budget-Controlling, der unter fehlender Echtzeitfähigkeit, fehlender Programmierschnittstelle und mangelnder Konsistenzprüfung litt (vgl. Abschnitt~3.1.3). Ziel war der Entwurf und die Implementierung einer Middleware, die diese Probleme adressiert und gleichzeitig einen späteren Wechsel zu service-orientierten Backends ermöglicht.
+Ausgangspunkt dieser Arbeit war ein Excel-basierter Workflow im Budget-Controlling mit den Defiziten fehlender Echtzeitfähigkeit, fehlender Programmierschnittstelle und mangelnder Konsistenzprüfung. Die entwickelte BC Middleware adressiert diese Probleme durch eine OData v4-konforme \gls{api} auf Basis von SAP \gls{cap}, die Budget-Metriken zur Laufzeit berechnet und über standardisierte Endpunkte bereitstellt.
 
-Die entwickelte BC Middleware löst die identifizierten Probleme durch eine OData v4-konforme \gls{api}, die auf SAP \gls{cap} basiert und sämtliche Budget-Daten über standardisierte Endpunkte bereitstellt. Die vier Metriken Budget, Actual, \gls{etc} und \gls{eac} werden zur Laufzeit aus den Excel-Daten berechnet und in zwei Aggregationsebenen (pro Team und pro \gls{psp}) angeboten. Der PSP-Override-Mechanismus stellt sicher, dass manuelle Zuordnungen über die \gls{api} sofort wirksam werden. Insgesamt wurden sechs von sieben funktionalen und alle fünf nicht-funktionalen Anforderungen vollständig erfüllt (vgl. Abschnitt~6.3). Die Middleware ist auf der SAP \gls{btp} deployed, durch 113 automatisierte Tests abgesichert und steht für die Integration mit dem Fiori-Frontend bereit.
+Die Evaluation zeigt, dass sechs von sieben funktionalen und alle nicht-funktionalen Anforderungen erfüllt sind (vgl. Kapitel~6). Die Middleware ist auf der SAP \gls{btp} deployed und durch 113 automatisierte Tests abgesichert.
 
 \subsection{Beantwortung der Forschungsfrage}
 
 Die zentrale Forschungsfrage lautete:
 
 \begin{quote}
-\textit{Wie kann eine Cloud-Middleware zur Abstraktion heterogener Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
+\textit{Wie kann eine Cloud-Middleware zur Abstraktion austauschbarer Datenquellen auf der SAP BTP konzipiert werden, sodass ein Wechsel zwischen einem Excel-basierten Backend und einer service-orientierten Integration mit minimalem Aufwand möglich ist?}
 \end{quote}
 
-Die Arbeit zeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} \citep{gamma1994} eine solche Architektur realisierbar ist. Die Antwort gliedert sich in drei Aspekte.
+Die Arbeit zeigt, dass durch konsequente Anwendung des \textbf{Adapter-Patterns} \citep{gamma1994} eine solche Architektur realisierbar ist. Im Folgenden werden die drei Teilfragen (TF-1 bis TF-3) beantwortet.
 
-Erstens ermöglicht ein \textbf{einheitliches Datenmodell}, das in \gls{cds} deklarativ definiert wird, die Entkopplung der \gls{api}-Schnittstelle von der konkreten Datenquelle. Die Entitäten (\texttt{Teams}, \texttt{PSPElements}, \texttt{BudgetOverview} etc.) werden mit \texttt{@cds.persistence.skip} annotiert, sodass SAP \gls{cap} einen vollständigen OData-Service generiert, ohne eine Datenbank vorauszusetzen. Dieses Modell bleibt bei einem Backend-Wechsel unverändert.
+\textbf{TF-1: Geeignete Architekturmuster.} Das Adapter-Pattern in Kombination mit dem Repository-Pattern hat sich als geeignet erwiesen (Kapitel~4). Die Adapter-Schicht kapselt alle datenquellenspezifischen Details hinter einer einheitlichen Schnittstelle. Ergänzend ermöglicht ein \textbf{einheitliches Datenmodell}, das in \gls{cds} deklarativ definiert wird, die Entkopplung der \gls{api}-Schnittstelle von der konkreten Datenquelle. Die Entitäten werden mit \texttt{@cds.persistence.skip} annotiert, sodass SAP \gls{cap} einen vollständigen OData-Service generiert, ohne eine Datenbank vorauszusetzen.
 
-Zweitens kapselt die \textbf{Adapter-Schicht} alle datenquellenspezifischen Details hinter einer einheitlichen Schnittstelle. Der Excel-Adapter übersetzt die heterogenen Sheet-Formate der \texttt{Budgetcontrolling.xlsx} in das interne Datenmodell; ein zukünftiger OData-Adapter würde die gleiche Schnittstelle mit Daten aus SAP \gls{calm} bedienen. Die Service-Schicht, die Budget-Berechnungslogik und das Session-Management arbeiten ausschließlich mit dem abstrakten Interface und haben keine Kenntnis über die konkrete Datenquelle.
+\textbf{TF-2: Vergleich der Backend-Varianten.} Der Vergleich in Kapitel~6 zeigt komplementäre Stärken: Das Excel-Backend punktet mit geringem Setup-Aufwand und Offline-Fähigkeit, während die direkte SAP-Anbindung (SAP \gls{calm} für User Stories, SAP S/4HANA für Zeitbuchungen) Echtzeitdaten, Transaktionssicherheit und bessere Skalierbarkeit bietet. Die Performance-Messungen zeigen akzeptable Antwortzeiten (< 1s für die meisten Endpunkte), wobei der Großteil der Latenz auf das Excel-Parsing zurückzuführen ist. Die Wartbarkeit ist beim SAP-Backend höher, da Änderungen am Datenmodell keine Anpassung von Parsing-Logik erfordern.
 
-Drittens vereinfacht die \textbf{Laufzeitberechnung} der Budget-Metriken den Backend-Wechsel zusätzlich: Da keine Daten persistiert werden, entfallen Migrationsprobleme. Die Metriken werden bei jedem Request aus den aktuell geladenen Daten berechnet, unabhängig von deren Herkunft.
+\textbf{TF-3: Implementierungsaufwand für Backend-Wechsel.} Der geschätzte Aufwand für einen vollständigen Wechsel von Excel zur direkten SAP-Anbindung liegt bei 8--13 Personentagen (vgl. Tabelle~\ref{tab:aufwand}). Die Service-Schicht, CDS-Definitionen, Budget-Berechnungslogik und alle 113 automatisierten Tests bleiben dabei unverändert -- über 80\,\% der Codebasis sind vom Wechsel nicht betroffen. Die \textbf{Laufzeitberechnung} der Budget-Metriken vereinfacht den Wechsel zusätzlich, da keine Datenmigration erforderlich ist.
 
-Der geschätzte Aufwand für einen vollständigen Wechsel von Excel zu OData-Services liegt bei 8--13 Personentagen (vgl. Tabelle~\ref{tab:aufwand}), wobei über 80\,\% der bestehenden Codebasis unverändert bleiben. Dies bestätigt die Wirksamkeit des gewählten Architekturansatzes.
+Diese Ergebnisse bestätigen die Wirksamkeit des gewählten Architekturansatzes.
 
 \subsection{Kritische Reflexion}
 
@@ -34,7 +34,7 @@ Die direkte SharePoint-Anbindung konnte aufgrund fehlender Berechtigungen nicht 
 
 Sessions werden ausschließlich im RAM gehalten und gehen bei Serverneustart verloren. Für den produktiven Einsatz ist dies eine relevante Einschränkung, die durch eine persistente Session-Speicherung adressiert werden müsste.
 
-Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen wurde mit begrenzten Testdaten validiert. Ausführliche Tests mit größeren Datenmengen und konkurrierenden Zugriffen stehen noch aus. Ebenso wurde der OData-Adapter für SAP \gls{calm} nur konzeptionell beschrieben, nicht implementiert, weshalb der tatsächliche Aufwand für den Backend-Wechsel von der Schätzung abweichen kann.
+Die Write-Back-Funktionalität für \gls{psp}-Zuordnungen wurde mit begrenzten Testdaten validiert. Ausführliche Tests mit größeren Datenmengen und konkurrierenden Zugriffen stehen noch aus. Ebenso wurde der SAP-Adapter für die direkte Anbindung an SAP \gls{calm} und SAP S/4HANA nur konzeptionell beschrieben, nicht implementiert, weshalb der tatsächliche Aufwand für den Backend-Wechsel von der Schätzung abweichen kann.
 
 Schließlich erfolgten die Performance-Messungen mit einzelnen sequentiellen Anfragen. Das Verhalten unter Last mit mehreren gleichzeitigen Benutzern wurde nicht systematisch untersucht.
 
@@ -50,11 +50,11 @@ Kurzfristig sollten die \gls{crud}-Operationen für \gls{psp}-Zuordnungen umfang
 
 \subsubsection{Mittelfristig}
 
-Mittelfristig steht die Implementierung des OData-Adapters für SAP \gls{calm} an, der die zentrale Architekturentscheidung dieser Arbeit validieren würde. Die geschätzten 8--13 Personentage (vgl. Tabelle~\ref{tab:aufwand}) könnten durch die bereits vorhandene Adapter-Schnittstelle und die unveränderte Service-Schicht realisiert werden. Ergänzend sollten die Sessions über einen externen Speicher wie Redis persistiert werden, um den Verlust bei Serverneustart zu vermeiden \citep{richardson2018}. Eine Historisierung von Änderungen an \gls{psp}-Zuordnungen würde die Nachvollziehbarkeit verbessern und das in der Problemanalyse (Abschnitt~3.1.3) identifizierte vierte Problem vollständig adressieren.
+Mittelfristig steht die Implementierung des SAP-Adapters für die direkte Anbindung an SAP \gls{calm} (User Stories) und SAP S/4HANA (Zeitbuchungen) an, der die zentrale Architekturentscheidung dieser Arbeit validieren würde. Die geschätzten 8--13 Personentage (vgl. Tabelle~\ref{tab:aufwand}) könnten durch die bereits vorhandene Adapter-Schnittstelle und die unveränderte Service-Schicht realisiert werden. Ergänzend sollten die Sessions über einen externen Speicher wie Redis persistiert werden, um den Verlust bei Serverneustart zu vermeiden \citep{richardson2018}. Eine Historisierung von Änderungen an \gls{psp}-Zuordnungen würde die Nachvollziehbarkeit verbessern und das in der Problemanalyse (Abschnitt~3.1.3) identifizierte vierte Problem vollständig adressieren.
 
 \subsubsection{Langfristig}
 
-Langfristig ist eine vollständige Migration auf SAP \gls{calm} als alleinige Datenquelle denkbar, bei der der Excel-Adapter zugunsten des OData-Adapters entfernt wird. In diesem Szenario entfallen der PSP-Override-Mechanismus und die Write-Back-Funktionalität, da Änderungen direkt im Backend-System persistiert würden. Eine Integration mit SAP Analytics Cloud könnte das Reporting erweitern, und das Architekturmuster der Middleware ließe sich auf weitere Projektcontrolling-Funktionen oder andere Domänen übertragen.
+Langfristig ist eine vollständige Migration auf die SAP-Systeme (SAP \gls{calm} und SAP S/4HANA) als alleinige Datenquellen denkbar, bei der der Excel-Adapter zugunsten des SAP-Adapters entfernt wird. In diesem Szenario entfallen der PSP-Override-Mechanismus und die Write-Back-Funktionalität, da Änderungen direkt in den Backend-Systemen persistiert würden. Eine Integration mit SAP Analytics Cloud könnte das Reporting erweitern, und das Architekturmuster der Middleware ließe sich auf weitere Projektcontrolling-Funktionen oder andere Domänen übertragen.
 
 \subsection{Fazit}
 

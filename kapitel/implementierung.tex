@@ -277,6 +277,21 @@ function parseCADO(workbook) {
 }
 \end{lstlisting}
 
+\subsubsection{Konkurrierende Schreibzugriffe}
+
+Ein inhärentes Problem des Excel-basierten Backends sind konkurrierende Schreibzugriffe. Wenn zwei Benutzer gleichzeitig \gls{psp}-Zuordnungen erstellen, können Race Conditions auftreten: Beide lesen den aktuellen Stand der Datei, fügen ihre Änderung hinzu und schreiben zurück -- wobei die zweite Schreiboperation die Änderung der ersten überschreibt (\textit{Lost Update Problem}) \citep{tanenbaum2017}.
+
+Die aktuelle Implementierung adressiert dieses Problem nicht vollständig. Node.js ist zwar single-threaded, sodass innerhalb einer Server-Instanz keine echte Parallelität auftritt, jedoch können bei horizontaler Skalierung (mehrere Cloud-Foundry-Instanzen) oder bei direkter Bearbeitung der Excel-Datei durch Benutzer Konflikte entstehen.
+
+Mögliche Lösungsansätze für den produktiven Einsatz wären:
+\begin{itemize}
+    \item \textbf{Optimistic Locking}: Speichern eines Zeitstempels oder einer Versionsnummer, Ablehnung bei Konflikt
+    \item \textbf{Pessimistic Locking}: Exklusive Dateisperre während des Schreibvorgangs (problematisch bei SharePoint)
+    \item \textbf{Event Sourcing}: Speichern von Änderungen als Events statt direkter Dateimanipulation
+\end{itemize}
+
+Für den Prototyp ist die aktuelle Lösung akzeptabel, da die erwartete Nutzerzahl gering ist (< 50) und gleichzeitige Schreibzugriffe selten auftreten. Bei einem Wechsel zum SAP-Backend entfällt dieses Problem, da die SAP-Systeme ACID-Transaktionen unterstützen.
+
 \subsubsection{Session-Validierung in jedem Request}
 
 Jeder API-Request (mit Ausnahme von \texttt{getProjects} und \texttt{startSession}) erfordert eine Session-Validierung. Diese wird vor der eigentlichen Handler-Logik geprüft:
